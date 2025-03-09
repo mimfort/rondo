@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import async_session_maker
 from app.exceptions import *
 from app.config import settings
-from app.users.dao import UsersDAO
+from app.users.dao import UsersDao
 
 def get_token(request: Request):
     token = request.cookies.get("_user_cookie")
@@ -29,7 +29,7 @@ async def get_current_user(token: str = Depends(get_token)):
     if not user_id:
         raise UserIsNotPresentException
 
-    user = await UsersDAO.find_by_id(int(user_id))
+    user = await UsersDao.find_by_id(int(user_id))
     if not user:
         raise UserIsNotPresentException
 

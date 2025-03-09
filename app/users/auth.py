@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 from jose import jwt
 from pydantic import EmailStr
 
-from app.users.dao import UsersDAO
+from app.users.dao import UsersDao
 from app.config import settings
 from app.exceptions import IncorrectEMailOrPasswordException
 
@@ -25,7 +25,7 @@ def create_access_token(data: dict) -> str:
     return encode_jwt
 
 async def auth_user(email: EmailStr, password: str):
-    user = await UsersDAO.find_one_or_none(email=email)
+    user = await UsersDao.find_one_or_none(email=email)
     try:
         if user and verify_password(password, user.hashed_password):
             return user

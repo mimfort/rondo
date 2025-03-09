@@ -1,4 +1,4 @@
-from sqlalchemy import insert, delete, select, update
+from sqlalchemy import insert, delete, select, update, func
 
 from app.database import async_session_maker
 
@@ -58,3 +58,9 @@ class BaseDAO:
             if query is not None:
                 await session.execute(query)
                 await session.commit()
+    @classmethod
+    async def count(cls, **filter_by):
+        async with async_session_maker() as session:
+            query = select(func.count()).select_from(cls.model).filter_by(**filter_by)
+            result = await session.execute(query)
+            return result.scalar()

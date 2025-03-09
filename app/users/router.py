@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Response, Request
 from pydantic import EmailStr
 from app.users.schemas import RegistrationModel, UserResponse, UserCreateResponse, UserAuthResponse
-from app.users.dao import UsersDAO
+from app.users.dao import UsersDao
 from app.exceptions import UserAlreadyExist, UsernameAlreadyExist
 from app.users.auth import get_password_hash, create_access_token, auth_user
 from app.exceptions import UserIsNotPresentException
@@ -14,15 +14,16 @@ router = APIRouter(
 
 @router.post('/registration',response_model=UserCreateResponse)
 async def registration(user_data: RegistrationModel):
-    user = await UsersDAO.find_one_or_none(email=user_data.email)
+    user = await UsersDao.find_one_or_none(email=user_data.email)
     if user:
         raise UserAlreadyExist
-    is_busy_username = await UsersDAO.find_one_or_none(username=user_data.username)
+    is_busy_username = await UsersDao.find_one_or_none(username=user_data.username)
     if is_busy_username:
         raise UsernameAlreadyExist
-    new_user = await UsersDAO.add(username=user_data.username,
+    new_user = await UsersDao.add(username=user_data.username,
                                   email=user_data.email,
-                                  hashed_password=get_password_hash(user_data.password))
+                                  hashed_password=get_password_hash(user_data.password)
+                                  )
     if new_user:
         return {"msg":"Пользователь создан", "user":new_user}
     else:

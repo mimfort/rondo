@@ -16,4 +16,4 @@ class User(Base):
     avatar_url: Mapped[str] = mapped_column(String(2048), nullable=True)
     is_active: Mapped[bool] = mapped_column(default=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
-    
+    admin_status: Mapped[str] = mapped_column(String(255), nullable=False, server_default="user")
