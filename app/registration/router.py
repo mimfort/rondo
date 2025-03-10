@@ -4,9 +4,9 @@ from app.registration.dao import RegistrationDao
 from app.users.dependencies import get_current_user
 from app.events.dao import EventDao
 from app.users.model import User
-router = APIRouter(prefix='/events/registration', tags=['Соты регистрация на ивент'])
+router = APIRouter(prefix='/events', tags=['Соты регистрация на ивент'])
 
-@router.post("/{event_id}", response_model=RegistrationResponse) 
+@router.post("/registration/{event_id}", response_model=RegistrationResponse) 
 async def registration_on_event(event_id: int,
                                 current_user:User = Depends(get_current_user)):
     new_registration = await RegistrationDao.find_one_or_none(user_id=current_user.id, event_id=event_id)
@@ -20,3 +20,12 @@ async def registration_on_event(event_id: int,
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="места закончились")
     user_reg = await RegistrationDao.add(event_id=event_id, user_id=current_user.id)
     return user_reg
+
+@router.post("/disregistration/{event_id}")
+async def disregistration_on_event(event_id:int,
+                                   current_user: User = Depends(get_current_user)):
+    is_registration = await RegistrationDao.find_one_or_none(id=event_id, user_id=current_user.id)
+    if not is_registration:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="вы не зарегистрированы на этот ивент или его не существует")
+    await RegistrationDao.delete(is_registration.id)
+    return "запись удалена"
