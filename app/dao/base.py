@@ -31,11 +31,12 @@ class BaseDAO:
     @classmethod
     async def add(cls, **data):
         async with async_session_maker() as session:
-            query = insert(cls.model).values(**data).returning(cls.model)
-
+            #query = insert(cls.model).values(**data).returning(cls.model)
+            query = insert(cls.model).values(**data).returning(*cls.model.__table__.c)
             result = await session.execute(query)
             await session.commit()
-            return result.scalar()
+            #return result.scalar()
+            return result.mappings().first()
         
     @classmethod
     async def update(cls, id: int, field: str, data):
