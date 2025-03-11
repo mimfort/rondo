@@ -5,6 +5,7 @@ from app.users.dependencies import get_current_user
 from app.events.dao import EventDao
 from app.users.model import User
 from datetime import datetime, timezone
+from app.registration.dao import RegistrationDao
 router = APIRouter(prefix='/events/additional', tags=['Соты регистрация на ивент (доп места)'])
 
 @router.post("/registration/{event_id}", response_model=RegistrationResponse) 
@@ -21,6 +22,9 @@ async def registration_on_event(event_id: int,
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="места закончились")
     if is_exist.start_time < datetime.now(timezone.utc):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="ивент уже начался или прошел")
+    in_addreg = await RegistrationDao.find_one_or_none(event_id=event_id, user_id = current_user.id)
+    if in_addreg:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="у вас уже есть запись на основные места")
     user_reg = await RegistrationAddDao.add(event_id=event_id, user_id=current_user.id)
     return user_reg
 

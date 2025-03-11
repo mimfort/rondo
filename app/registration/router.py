@@ -5,6 +5,7 @@ from app.users.dependencies import get_current_user
 from app.events.dao import EventDao
 from app.users.model import User
 from datetime import datetime, timezone
+from app.additional_registration.dao import RegistrationAddDao
 router = APIRouter(prefix='/events', tags=['Соты регистрация на ивент'])
 
 @router.post("/registration/{event_id}", response_model=RegistrationResponse) 
@@ -21,6 +22,10 @@ async def registration_on_event(event_id: int,
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="места закончились")
     if is_exist.start_time < datetime.now(timezone.utc):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="ивент уже начался или прошел")
+    in_addreg = await RegistrationAddDao.find_one_or_none(event_id=event_id, user_id = current_user.id)
+    if in_addreg:
+        print(in_addreg)
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="у вас уже есть запись на доп места")
     user_reg = await RegistrationDao.add(event_id=event_id, user_id=current_user.id)
     return user_reg
 
@@ -34,4 +39,9 @@ async def disregistration_on_event(event_id:int,
     if event.start_time < datetime.now(timezone.utc):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="ивент уже начался или прошел")
     await RegistrationDao.delete(is_registration.id)
+    first_from_list_additional = await RegistrationAddDao.find_first_added(event_id=event_id)
+    if first_from_list_additional:
+        await RegistrationAddDao.delete(first_from_list_additional.id)
+        await RegistrationDao.add(event_id=first_from_list_additional.event_id,
+                                  user_id=first_from_list_additional.user_id)
     return "запись удалена"
