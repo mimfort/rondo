@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Response, Request
+from fastapi import APIRouter, Response, Request, Depends
 from pydantic import EmailStr
+from app.users.model import User
 from app.users.schemas import RegistrationModel, UserResponse, UserCreateResponse, UserAuthResponse
 from app.users.dao import UsersDao
 from app.exceptions import UserAlreadyExist, UsernameAlreadyExist
 from app.users.auth import get_password_hash, create_access_token, auth_user
 from app.exceptions import UserIsNotPresentException
-from app.users.dependencies import get_token
+from app.users.dependencies import get_current_user, get_token
 
 router = APIRouter(
     prefix='/users',
@@ -40,6 +41,11 @@ async def login(response: Response, auth_model: UserAuthResponse):
         return "Вы вошли в свою учетную запись"
     return "Вы не смогли войти в аккаунт"
 
-@router.get("")
+@router.get("/quit")
 async def quit_account(response: Response):
-    response.delete_cookie("access_token")
+    response.delete_cookie("_user_cookie")
+
+@router.get("/me")
+async def about_me(response: Response,
+                   current_user: User = Depends(get_current_user)):
+    return {"email":current_user.email, "username":current_user.username, "avatar_url":current_user.avatar_url, "created_at": current_user.created_at}
