@@ -39,3 +39,17 @@ async def disregistration_on_event(event_id:int,
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="ивент уже начался или прошел")
     await RegistrationAddDao.delete(is_registration.id)
     return "запись удалена"
+
+
+@router.get("/my_registration",response_model=list[RegistrationResponse])
+async def my_registration(current_user: User = Depends(get_current_user)):
+    events = await RegistrationAddDao.find_all(user_id=current_user.id)
+    return events
+
+@router.get("/my_registration/{event_id}",response_model= RegistrationResponse)
+async def my_registration(event_id: int,
+                          current_user: User = Depends(get_current_user)):
+    events = await RegistrationAddDao.find_one_or_none(user_id=current_user.id, event_id=event_id)
+    if not events:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="у вас нет записи на этот ивент")
+    return events
