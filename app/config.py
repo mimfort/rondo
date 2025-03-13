@@ -10,7 +10,13 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     SECRET_KEY: str
     HASH_ALGO: str
-    
+    BROKER: str
+    BACKEND: str
+    SMTP_SERVER: str
+    SMTP_PORT: str
+    SMTP_USERNAME: str
+    SMTP_PASSWORD: str
+    EMAIL_FROM: str
 
     model_config = SettingsConfigDict(env_file=".env")
 

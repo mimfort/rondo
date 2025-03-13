@@ -1,11 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.registration.schemas import RegistrationResponse
 from app.registration.dao import RegistrationDao
+from app.users.dao import UsersDao
 from app.users.dependencies import get_current_user
 from app.events.dao import EventDao
 from app.users.model import User
 from datetime import datetime, timezone
 from app.additional_registration.dao import RegistrationAddDao
+from app.tasks.tasks import send_about_registration
+from app.users.dependencies import format_datetime_moscow
+from app.tasks.tasks import send_about_registration
 router = APIRouter(prefix='/events', tags=['Соты регистрация на ивент'])
 
 @router.post("/registration/{event_id}", response_model=RegistrationResponse) 
@@ -24,9 +28,9 @@ async def registration_on_event(event_id: int,
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="ивент уже начался или прошел")
     in_addreg = await RegistrationAddDao.find_one_or_none(event_id=event_id, user_id = current_user.id)
     if in_addreg:
-        print(in_addreg)
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="у вас уже есть запись на доп места")
     user_reg = await RegistrationDao.add(event_id=event_id, user_id=current_user.id)
+    send_about_registration.delay(to = current_user.email, username=current_user.username, event_name=is_exist.title, time_start=is_exist.start_time)
     return user_reg
 
 @router.post("/disregistration/{event_id}")
@@ -44,6 +48,8 @@ async def disregistration_on_event(event_id:int,
         await RegistrationAddDao.delete(first_from_list_additional.id)
         await RegistrationDao.add(event_id=first_from_list_additional.event_id,
                                   user_id=first_from_list_additional.user_id)
+        new_user = await UsersDao.find_one_or_none(id=first_from_list_additional.user_id)
+        send_about_registration.delay(to = new_user.email, username=new_user.username, event_name=event.title, time_start=event.start_time)
     return "запись удалена"
 
 @router.get("/my_registration",response_model=list[RegistrationResponse])

@@ -6,12 +6,33 @@ from app.database import async_session_maker
 from app.exceptions import *
 from app.config import settings
 from app.users.dao import UsersDao
+from datetime import datetime
+import pytz
 
 def get_token(request: Request):
     token = request.cookies.get("_user_cookie")
     if not token:
         raise TokenAbsentException
     return token
+
+
+def format_datetime_moscow(dt: datetime) -> str:
+    # Переводим дату в московский часовой пояс
+    moscow_tz = pytz.timezone("Europe/Moscow")
+    dt_msk = dt.astimezone(moscow_tz)
+    
+    # Форматируем дату в нужный вид
+    months = {
+        1: "января", 2: "февраля", 3: "марта", 4: "апреля",
+        5: "мая", 6: "июня", 7: "июля", 8: "августа",
+        9: "сентября", 10: "октября", 11: "ноября", 12: "декабря"
+    }
+    
+    day = dt_msk.day
+    month = months[dt_msk.month]
+    time = dt_msk.strftime("%H:%M")  # Часы и минуты
+
+    return f"{day} {month} в {time} МСК"
 
 async def get_current_user(token: str = Depends(get_token)):
     try:

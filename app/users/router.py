@@ -7,7 +7,7 @@ from app.exceptions import UserAlreadyExist, UsernameAlreadyExist
 from app.users.auth import get_password_hash, create_access_token, auth_user
 from app.exceptions import UserIsNotPresentException
 from app.users.dependencies import get_current_user, get_token
-
+from app.tasks.tasks import send_login_email, send_welcome_email
 router = APIRouter(
     prefix='/users',
     tags=["Пользователи"]
@@ -26,6 +26,7 @@ async def registration(user_data: RegistrationModel):
                                   hashed_password=get_password_hash(user_data.password)
                                   )
     if new_user:
+        send_welcome_email.delay(to=user_data.email, username=user_data.username)
         return {"msg":"Пользователь создан", "user":new_user}
     else:
         return "Не создан"
@@ -38,6 +39,7 @@ async def login(response: Response, auth_model: UserAuthResponse):
         cookie = create_access_token({"sub": str(user.id)})
         
         response.set_cookie("_user_cookie", cookie, httponly=True)
+        send_login_email.delay(to=user.email, username=user.username)
         return "Вы вошли в свою учетную запись"
     return "Вы не смогли войти в аккаунт"
 
