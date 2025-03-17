@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "email": "user@example.com",
+    "username": "string",
+    "hashed_password": "$argon2id$v=19$m=65536,t=3,p=4$5XAzYZaQnvayPUpMDWgOZQ$EaeBg08hXS8Y6jcRY8ZCiW4B03aC4iHGSEaBox9qhkQ",
+    "avatar_url": null,
+    "is_active": true,
+    "created_at": "2025-03-06T23:07:35.835243",
+    "admin_status": "admin"
+  },
+  {
+    "id": 2,
+    "email": "user@exa12mple.com",
+    "username": "str123ing",
+    "hashed_password": "$argon2id$v=19$m=65536,t=3,p=4$w8tSdusjuhCx+5UcrX4zQA$550BeYBrnUk4pXVQns3pf5reIgFUnf4qEDCzg5AXgVo",
+    "avatar_url": null,
+    "is_active": true,
+    "created_at": "2025-03-09T00:46:03.281133",
+    "admin_status": "user"
+  },
+  {
+    "id": 3,
+    "email": "useasdsar@example.com",
+    "username": "strasdasing",
+    "hashed_password": "$argon2id$v=19$m=65536,t=3,p=4$K950p+leKpxX98njmhhdFA$f6hrdZu8/NDvvj5udKphtmHeU6qXMkcInkfxqOTggVw",
+    "avatar_url": null,
+    "is_active": true,
+    "created_at": "2025-03-11T14:30:59.627184",
+    "admin_status": "user"
+  },
+  {
+    "id": 4,
+    "email": "user1@example.com",
+    "username": "string1",
+    "hashed_password": "$argon2id$v=19$m=65536,t=3,p=4$kD985M2cfO3XqCarMkCk+Q$X9taU6cLpf6CXcXe3PJw2Cojc7wexZTx7dxVLNcfJX0",
+    "avatar_url": null,
+    "is_active": true,
+    "created_at": "2025-03-11T17:30:46.849773",
+    "admin_status": "user"
+  },
+  {
+    "id": 5,
+    "email": "user2@example.com",
+    "username": "string2",
+    "hashed_password": "$argon2id$v=19$m=65536,t=3,p=4$NZugX2XF7oceotP7HG1+Ow$8fL+rxjhCadCdh9uOnOXPb1rzGKGa3fnZkOUETS00T8",
+    "avatar_url": null,
+    "is_active": true,
+    "created_at": "2025-03-12T17:45:27.116559",
+    "admin_status": "user"
+  },
+  {
+    "id": 7,
+    "email": "zvvqwerty1@gmail.com",
+    "username": "mimfort",
+    "hashed_password": "$argon2id$v=19$m=65536,t=3,p=4$iX7dz+xx3OT98ha0fIm8LQ$0dEMVChdZ2NhnErj4T7cHAPtR/55NjxauFt8H6zV7TY",
+    "avatar_url": null,
+    "is_active": true,
+    "created_at": "2025-03-13T22:35:25.659868",
+    "admin_status": "user"
+  },
+  {
+    "id": 8,
+    "email": "dianapisareva060405@gmail.com",
+    "username": "diana",
+    "hashed_password": "$argon2id$v=19$m=65536,t=3,p=4$LiBLEXc4ZMy/GP+ohCFF0Q$aChOI6eJ4Y2WJMhH77mt+bUK9r9OqIl8fIK25Z5S+QY",
+    "avatar_url": null,
+    "is_active": true,
+    "created_at": "2025-03-14T00:26:16.660123",
+    "admin_status": "user"
+  }
+]

@@ -1,0 +1,67 @@
+[
+    {
+        "id": 1,
+        "title": "string",
+        "description": "string",
+        "media_url": "string",
+        "max_members": 0,
+        "additional_members": 0,
+        "location": "string",
+        "start_time": "2025-03-09T00:00:55.913+03:00",
+        "end_time": "2025-03-09T00:00:55.913+03:00",
+        "created_at": "2025-03-09T00:18:54.584975",
+        "updated_at": "2025-03-09T00:18:54.584975"
+    },
+    {
+        "id": 2,
+        "title": "string",
+        "description": "string",
+        "media_url": "string",
+        "max_members": 0,
+        "additional_members": 0,
+        "location": "string",
+        "start_time": "2025-03-09T00:00:55.913+03:00",
+        "end_time": "2025-03-09T00:00:55.913+03:00",
+        "created_at": "2025-03-09T00:19:42.083774",
+        "updated_at": "2025-03-09T00:19:42.083774"
+    },
+    {
+        "id": 3,
+        "title": "string",
+        "description": "string",
+        "media_url": "string",
+        "max_members": 0,
+        "additional_members": 0,
+        "location": "string",
+        "start_time": "2025-03-09T00:00:55.913+03:00",
+        "end_time": "2025-03-09T00:00:55.913+03:00",
+        "created_at": "2025-03-09T00:20:33.271196",
+        "updated_at": "2025-03-09T00:20:33.271196"
+    },
+    {
+        "id": 4,
+        "title": "string",
+        "description": "string",
+        "media_url": "string",
+        "max_members": 0,
+        "additional_members": 0,
+        "location": "string",
+        "start_time": "2025-03-09T10:42:33.427+03:00",
+        "end_time": "2025-03-09T10:42:33.427+03:00",
+        "created_at": "2025-03-09T10:43:46.232975",
+        "updated_at": "2025-03-09T10:43:46.232975"
+    },
+    {
+        "id": 5,
+        "title": "string",
+        "description": "string",
+        "media_url": "string",
+        "max_members": 0,
+        "additional_members": 0,
+        "location": "string",
+        "start_time": "2025-03-09T10:42:33.427+03:00",
+        "end_time": "2025-03-09T10:42:33.427+03:00",
+        "created_at": "2025-03-09T10:44:50.85146",
+        "updated_at": "2025-03-09T10:44:50.85146"
+    }
+]
