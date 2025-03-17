@@ -22,4 +22,36 @@ dependencies = [
     "aioredis>=2.0.1",
     "email-validator>=2.2.0",
     "flower>=2.0.1",
+    "black>=25.1.0",
+    "flake8>=7.1.2",
+    "autoflake>=2.3.1",
+    "isort>=6.0.1",
+    "pyright>=1.1.396",
+    "ruff>=0.11.0",
+    "pytest>=8.3.5",
+    "pytest-asyncio>=0.25.3",
 ]
+[tool.ruff]
+line-length = 88  
+target-version = "py312"  
+
+[tool.ruff.lint]
+select = [
+    "E",  # Ошибки стиля (pycodestyle)
+    "F",  # Ошибки кода (flake8)
+    "I",  # Упорядочивание импортов
+    "UP", # Обновление кода до новых стандартов Python
+]
+
+ignore = [
+ "E501"
+]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-v --tb=short"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+python_classes = ["Test*"]
+asyncio_mode = "auto"

@@ -1,14 +1,11 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-from app.config import settings
+from sqlalchemy import engine_from_config, pool
+
 from alembic import context
+from app.config import settings
 from app.database import Base
-from app.users.model import User
-from app.events.model import Event
-from app.registration.model import Registration
-from app.additional_registration.model import Registration_additional
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
