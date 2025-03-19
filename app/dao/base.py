@@ -17,7 +17,7 @@ class BaseDAO:
     @classmethod
     async def find_one_or_none(cls, **kwargs):
         async with async_session_maker() as session:
-            query = select(cls.model).filter_by(**kwargs)  # Выбираем саму модель
+            query = select(cls.model).filter_by(**kwargs)
             result = await session.execute(query)
             return result.scalars().one_or_none()
 
@@ -31,12 +31,10 @@ class BaseDAO:
     @classmethod
     async def add(cls, **data):
         async with async_session_maker() as session:
-            # query = insert(cls.model).values(**data).returning(cls.model)
-            query = insert(cls.model).values(**data).returning(*cls.model.__table__.c)
+            query = insert(cls.model).values(**data).returning(cls.model)
             result = await session.execute(query)
             await session.commit()
-            # return result.scalar()
-            return result.mappings().first()
+            return result.scalar()
 
     @classmethod
     async def update(cls, id: int, field: str, data):

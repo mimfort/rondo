@@ -25,3 +25,4 @@ class EventUpdate(EventBase):
 class EventResponse(EventBase):
     id: int
     created_at: datetime
+    registration_count: int

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, Response
+from fastapi.responses import JSONResponse
 
 from app.exceptions import UserAlreadyExist, UsernameAlreadyExist
 from app.tasks.tasks import send_login_email, send_welcome_email
@@ -9,6 +10,19 @@ from app.users.model import User
 from app.users.schemas import RegistrationModel, UserAuthResponse, UserCreateResponse
 
 router = APIRouter(prefix="/users", tags=["Пользователи"])
+
+
+@router.options("/registration")
+async def registration_options():
+    return JSONResponse(
+        content={},
+        headers={
+            "Access-Control-Allow-Origin": "http://localhost:5173",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+            "Access-Control-Allow-Credentials": "true",
+        },
+    )
 
 
 @router.post("/registration", response_model=UserCreateResponse)

@@ -96,7 +96,7 @@ async def disregistration_on_event(
     return "запись удалена"
 
 
-@router.get("/my_registration", response_model=list[RegistrationResponse])
+@router.get("/my_registration/info", response_model=list[RegistrationResponse])
 async def my_registration_list(current_user: User = Depends(get_current_user)):
     events = await RegistrationDao.find_all(user_id=current_user.id)
     return events
