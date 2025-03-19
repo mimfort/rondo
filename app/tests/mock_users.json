@@ -60,7 +60,7 @@
     "admin_status": "user"
   },
   {
-    "id": 8,
+    "id": 9,
     "email": "dianapisareva060405@gmail.com",
     "username": "diana",
     "hashed_password": "$argon2id$v=19$m=65536,t=3,p=4$LiBLEXc4ZMy/GP+ohCFF0Q$aChOI6eJ4Y2WJMhH77mt+bUK9r9OqIl8fIK25Z5S+QY",
