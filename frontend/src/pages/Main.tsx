@@ -57,18 +57,25 @@ const Main = () => {
             }
         };
 
-        // Проверяем, загружен ли уже API
+        // Проверяем, загружен ли уже API и скрипт
         if (window.ymaps) {
             loadMap();
         } else {
-            const script = document.createElement('script');
-            script.src = `https://api-maps.yandex.ru/2.1/?apikey=${YANDEX_MAPS_API_KEY}&lang=ru_RU`;
-            script.onload = loadMap;
-            script.onerror = () => {
-                console.error('Ошибка при загрузке API Яндекс.Карт');
-                setMapError('Не удалось загрузить API Яндекс.Карт');
-            };
-            document.head.appendChild(script);
+            // Проверяем, не добавлен ли уже скрипт
+            const existingScript = document.querySelector('script[src*="api-maps.yandex.ru"]');
+            if (!existingScript) {
+                const script = document.createElement('script');
+                script.src = `https://api-maps.yandex.ru/2.1/?apikey=${YANDEX_MAPS_API_KEY}&lang=ru_RU`;
+                script.onload = loadMap;
+                script.onerror = () => {
+                    console.error('Ошибка при загрузке API Яндекс.Карт');
+                    setMapError('Не удалось загрузить API Яндекс.Карт');
+                };
+                document.head.appendChild(script);
+            } else {
+                // Если скрипт уже добавлен, просто ждем загрузки API
+                existingScript.addEventListener('load', loadMap);
+            }
         }
 
         return () => {
