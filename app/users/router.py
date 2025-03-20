@@ -69,4 +69,5 @@ async def about_me(response: Response, current_user: User = Depends(get_current_
         "username": current_user.username,
         "avatar_url": current_user.avatar_url,
         "created_at": current_user.created_at,
+        "admin_status": current_user.admin_status,
     }

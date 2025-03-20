@@ -29,7 +29,7 @@ class User(Base):
 
     # Relationships
     registrations: Mapped[list["Registration"]] = relationship(back_populates="user")
-    additional_registrations: Mapped[list["Registration_additional"]] = relationship(
+    registration_additional: Mapped[list["Registration_additional"]] = relationship(
         back_populates="user"
     )
 

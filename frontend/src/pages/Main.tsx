@@ -187,56 +187,62 @@ const Main = () => {
                 </div>
             </motion.div>
 
-            {/* Contact Section */}
-            <motion.div
-                className="bg-indigo-900 text-white py-20 px-4"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8 }}
-            >
-                <div className="max-w-7xl mx-auto text-center">
-                    <h2 className="text-4xl font-bold mb-8">Как нас найти?</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div>
-                            <h3 className="text-xl font-semibold mb-4">Адрес</h3>
-                            <p className="text-indigo-100">
-                                ул. Школьная, дом 6, СКК "Рондо"<br />
-                                Новое Девяткино, Всеволожский район<br />
-                                Ленинградская область
-                            </p>
-                        </div>
-                        <div>
-                            <h3 className="text-xl font-semibold mb-4">Контакты</h3>
-                            <p className="text-indigo-100">
-                                (812) 679-79-05<br />
-                                molodnd@mail.ru
-                            </p>
-                            <div className="mt-6 flex justify-center space-x-6">
-                                <a
-                                    href="https://vk.com/ndsoty"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-white hover:text-indigo-200 transition-colors duration-300"
-                                >
-                                    <img src={vkIcon} alt="ВКонтакте" className="w-8 h-8" />
-                                </a>
-                                <a
-                                    href="https://t.me/molodnd"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-white hover:text-indigo-200 transition-colors duration-300"
-                                >
-                                    <img src={telegramIcon} alt="Telegram" className="w-8 h-8" />
-                                </a>
+            {/* Контакты */}
+            <section id="contacts" className="py-16 bg-white">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center">
+                        <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                            Контакты
+                        </h2>
+                        <p className="mt-4 text-lg text-gray-500">
+                            Свяжитесь с нами любым удобным способом
+                        </p>
+                    </div>
+
+                    <div className="mt-12 grid grid-cols-1 gap-8 lg:grid-cols-2">
+                        {/* Контактная информация */}
+                        <div className="bg-gradient-to-br from-white to-gray-50 rounded-lg shadow-[0_0_20px_rgba(0,0,0,0.05)] p-8 relative overflow-hidden border border-gray-100">
+                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-purple-50/50"></div>
+                            <div className="relative space-y-6">
+                                <div>
+                                    <h3 className="text-lg font-medium text-gray-900">Адрес</h3>
+                                    <p className="mt-2 text-gray-600">
+                                        Школьная улица, 6, Новое Девяткино
+                                    </p>
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-medium text-gray-900">Социальные сети</h3>
+                                    <div className="mt-4 flex space-x-6">
+                                        <a
+                                            href="https://vk.com/ndsoty"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-gray-600 hover:text-indigo-600 transition-colors duration-200"
+                                        >
+                                            <span className="sr-only">ВКонтакте</span>
+                                            <img src={vkIcon} alt="VK" className="h-8 w-8" />
+                                        </a>
+                                        <a
+                                            href="https://t.me/molodnd"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-gray-600 hover:text-indigo-600 transition-colors duration-200"
+                                        >
+                                            <span className="sr-only">Telegram</span>
+                                            <img src={telegramIcon} alt="Telegram" className="h-8 w-8" />
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div className="mt-12 flex justify-center">
-                        <div id="map" className="w-[400px] h-[250px] rounded-lg shadow-lg overflow-hidden"></div>
+
+                        {/* Карта */}
+                        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                            <div id="map" className="h-[400px] w-full"></div>
+                        </div>
                     </div>
                 </div>
-            </motion.div>
+            </section>
         </div>
     );
 };

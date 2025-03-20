@@ -1,8 +1,10 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqladmin import Admin
 
 from app.additional_registration.router import router as additional_reg_router
@@ -20,12 +22,11 @@ from app.users.router import router as users_router
 
 
 @asynccontextmanager
-async def lifespan(_: FastAPI) -> AsyncIterator[None]:
-    # redis = aioredis.from_url("redis://localhost")
-    # FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
-    print("-------начало---------")
+async def lifespan(app: FastAPI):
+    # Создаем директорию для загрузки файлов при запуске приложения
+    if not os.path.exists("uploads"):
+        os.makedirs("uploads")
     yield
-    print("-------конец---------")
 
 
 app = FastAPI(lifespan=lifespan)
@@ -45,6 +46,9 @@ app.add_middleware(
     expose_headers=["*"],
     max_age=3600,
 )
+
+# Монтируем статическую директорию для загруженных файлов
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 admin = Admin(app, engine, authentication_backend=authentication_backend)
 

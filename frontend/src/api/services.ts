@@ -1,19 +1,14 @@
 import api from './config';
-import type { Event, LoginForm, RegisterForm, EventForm, Registration } from '../types';
+import type { Event, LoginForm, RegisterForm, EventForm, Registration, User } from '../types';
 import axios from 'axios';
-
-interface User {
-    id: number;
-    username: string;
-    email: string;
-    avatar_url: string | null;
-    created_at: string;
-}
 
 export const authService = {
     login: (data: LoginForm) => api.post('/users/auth', data),
     register: (data: RegisterForm) => api.post('/users/register', data),
     getCurrentUser: () => api.get<User>('/users/me'),
+    setAuthToken: (token: string) => {
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    },
     logout: async () => {
         console.log('Starting logout process...');
         try {
@@ -51,18 +46,36 @@ export const eventService = {
         const response = await api.get<Event>(`/events/${id}`);
         console.log('Full response:', response);
         console.log('Response data:', response.data);
-        console.log('Event date:', response.data.date);
-        console.log('Event spots:', {
-            available: response.data.available_spots,
-            total: response.data.total_spots
-        });
         return response;
     },
-    createEvent: (data: EventForm) => api.post<Event>('/events/admin_create', data),
+    createEvent: async (data: FormData) => {
+        console.log('Создание события с данными:', Object.fromEntries(data.entries()));
+        try {
+            const response = await api.post<Event>('/events/admin_create', data, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            console.log('Ответ на создание события:', response);
+            return response;
+        } catch (error) {
+            console.error('Ошибка при создании события:', error);
+            if (axios.isAxiosError(error)) {
+                console.error('Детали ошибки:', {
+                    status: error.response?.status,
+                    statusText: error.response?.statusText,
+                    data: error.response?.data,
+                    headers: error.response?.headers,
+                });
+            }
+            throw error;
+        }
+    },
     deleteEvent: (id: number) => api.delete(`/events/${id}`),
 };
 
 export const registrationService = {
-    registerForEvent: (eventId: number) => api.post<Registration>(`/events/registration/${eventId}`),
-    getUserRegistrations: () => api.get<Registration[]>('/events/my_registration/info'),
+    registerForEvent: (eventId: number) => api.post<Registration>(`/users/registration/${eventId}`),
+    getUserRegistrations: () => api.get<Registration[]>('/users/registration/my_registration/info'),
+    cancelRegistration: (eventId: number) => api.post(`/users/registration/disregistration/${eventId}`),
 }; 

@@ -4,11 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../api/services';
 import AnimatedLogo from '../components/AnimatedLogo';
-
-interface LoginForm {
-    email: string;
-    password: string;
-}
+import type { LoginForm } from '../types';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -21,7 +17,14 @@ const Login = () => {
 
     const loginMutation = useMutation({
         mutationFn: async (data: LoginForm) => {
-            return await authService.login(data);
+            const response = await authService.login(data);
+            // Сохраняем токен в localStorage
+            if (response.data.access_token) {
+                localStorage.setItem('token', response.data.access_token);
+                // Устанавливаем токен в заголовки axios
+                authService.setAuthToken(response.data.access_token);
+            }
+            return response;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['user'] });

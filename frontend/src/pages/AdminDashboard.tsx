@@ -1,24 +1,72 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { eventService } from '../api/services';
-import type { Event, EventForm } from '../types';
+import { useNavigate } from 'react-router-dom';
+import { eventService, authService } from '../api/services';
+import type { Event, EventForm, User } from '../types';
 
 const AdminDashboard = () => {
+    const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { register, handleSubmit, reset, formState: { errors } } = useForm<EventForm>();
+    const [selectedImage, setSelectedImage] = useState<File | null>(null);
 
-    const { data: events, isLoading } = useQuery({
+    const { data: userResponse } = useQuery({
+        queryKey: ['user'],
+        queryFn: () => authService.getCurrentUser(),
+        retry: false,
+    });
+
+    const user = userResponse?.data as User | undefined;
+
+    React.useEffect(() => {
+        if (user && user.admin_status !== 'admin') {
+            navigate('/');
+        }
+    }, [user, navigate]);
+
+    const { data: eventsResponse, isLoading } = useQuery({
         queryKey: ['events'],
         queryFn: eventService.getAllEvents,
     });
 
+    const events = eventsResponse?.data as Event[] | undefined;
+
     const createEventMutation = useMutation({
-        mutationFn: eventService.createEvent,
+        mutationFn: async (data: EventForm) => {
+            console.log('Отправляемые данные:', data);
+            const formData = new FormData();
+            Object.entries(data).forEach(([key, value]) => {
+                if (key === 'max_members') {
+                    console.log(`Добавляем в FormData число: ${key} = ${value}`);
+                    formData.append(key, value.toString());
+                } else {
+                    console.log(`Добавляем в FormData: ${key} = ${value}`);
+                    formData.append(key, String(value));
+                }
+            });
+            if (selectedImage) {
+                console.log('Добавляем изображение:', selectedImage);
+                formData.append('image', selectedImage);
+            }
+            try {
+                const response = await eventService.createEvent(formData);
+                console.log('Ответ сервера:', response);
+                return response;
+            } catch (error) {
+                console.error('Ошибка при создании события:', error);
+                throw error;
+            }
+        },
         onSuccess: () => {
+            console.log('Событие успешно создано');
             queryClient.invalidateQueries({ queryKey: ['events'] });
             reset();
+            setSelectedImage(null);
         },
+        onError: (error) => {
+            console.error('Ошибка при создании события:', error);
+        }
     });
 
     const deleteEventMutation = useMutation({
@@ -29,7 +77,16 @@ const AdminDashboard = () => {
     });
 
     const onSubmit = (data: EventForm) => {
+        console.log('Данные формы перед отправкой:', data);
+        console.log('Тип max_members:', typeof data.max_members);
+        console.log('Значение max_members:', data.max_members);
         createEventMutation.mutate(data);
+    };
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setSelectedImage(e.target.files[0]);
+        }
     };
 
     if (isLoading) {
@@ -65,8 +122,8 @@ const AdminDashboard = () => {
                         <textarea
                             id="description"
                             {...register('description', { required: 'Описание обязательно' })}
-                            rows={3}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            rows={4}
                         />
                         {errors.description && (
                             <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
@@ -74,17 +131,59 @@ const AdminDashboard = () => {
                     </div>
 
                     <div>
-                        <label htmlFor="date" className="block text-sm font-medium text-gray-700">
-                            Дата
+                        <label htmlFor="image" className="block text-sm font-medium text-gray-700">
+                            Изображение
+                        </label>
+                        <input
+                            type="file"
+                            id="image"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="mt-1 block w-full text-sm text-gray-500
+                                file:mr-4 file:py-2 file:px-4
+                                file:rounded-md file:border-0
+                                file:text-sm file:font-semibold
+                                file:bg-indigo-50 file:text-indigo-700
+                                hover:file:bg-indigo-100"
+                        />
+                        {selectedImage && (
+                            <div className="mt-2">
+                                <img
+                                    src={URL.createObjectURL(selectedImage)}
+                                    alt="Preview"
+                                    className="h-32 w-32 object-cover rounded-lg"
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    <div>
+                        <label htmlFor="start_time" className="block text-sm font-medium text-gray-700">
+                            Дата начала
                         </label>
                         <input
                             type="datetime-local"
-                            id="date"
-                            {...register('date', { required: 'Дата обязательна' })}
+                            id="start_time"
+                            {...register('start_time', { required: 'Дата начала обязательна' })}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         />
-                        {errors.date && (
-                            <p className="mt-1 text-sm text-red-600">{errors.date.message}</p>
+                        {errors.start_time && (
+                            <p className="mt-1 text-sm text-red-600">{errors.start_time.message}</p>
+                        )}
+                    </div>
+
+                    <div>
+                        <label htmlFor="end_time" className="block text-sm font-medium text-gray-700">
+                            Дата окончания
+                        </label>
+                        <input
+                            type="datetime-local"
+                            id="end_time"
+                            {...register('end_time', { required: 'Дата окончания обязательна' })}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        />
+                        {errors.end_time && (
+                            <p className="mt-1 text-sm text-red-600">{errors.end_time.message}</p>
                         )}
                     </div>
 
@@ -104,41 +203,35 @@ const AdminDashboard = () => {
                     </div>
 
                     <div>
-                        <label htmlFor="total_spots" className="block text-sm font-medium text-gray-700">
-                            Количество мест
+                        <label htmlFor="max_members" className="block text-sm font-medium text-gray-700">
+                            Максимальное количество участников
                         </label>
                         <input
                             type="number"
-                            id="total_spots"
-                            {...register('total_spots', { required: 'Количество мест обязательно' })}
+                            id="max_members"
+                            {...register('max_members', {
+                                required: 'Количество участников обязательно',
+                                valueAsNumber: true,
+                                min: {
+                                    value: 1,
+                                    message: 'Количество участников должно быть больше 0'
+                                }
+                            })}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         />
-                        {errors.total_spots && (
-                            <p className="mt-1 text-sm text-red-600">{errors.total_spots.message}</p>
+                        {errors.max_members && (
+                            <p className="mt-1 text-sm text-red-600">{errors.max_members.message}</p>
                         )}
                     </div>
 
-                    <div>
-                        <label htmlFor="price" className="block text-sm font-medium text-gray-700">
-                            Цена
-                        </label>
-                        <input
-                            type="number"
-                            id="price"
-                            {...register('price', { required: 'Цена обязательна' })}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                        />
-                        {errors.price && (
-                            <p className="mt-1 text-sm text-red-600">{errors.price.message}</p>
-                        )}
+                    <div className="flex justify-end">
+                        <button
+                            type="submit"
+                            className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
+                        >
+                            Создать событие
+                        </button>
                     </div>
-
-                    <button
-                        type="submit"
-                        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                        Создать событие
-                    </button>
                 </form>
             </div>
 
@@ -160,10 +253,7 @@ const AdminDashboard = () => {
                                     Место
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Места
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Цена
+                                    Макс. участников
                                 </th>
                                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Действия
@@ -179,7 +269,7 @@ const AdminDashboard = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm text-gray-900">
-                                            {new Date(event.date).toLocaleString()}
+                                            {new Date(event.start_time).toLocaleString()}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
@@ -187,11 +277,8 @@ const AdminDashboard = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm text-gray-900">
-                                            {event.available_spots}/{event.total_spots}
+                                            {event.registration_count}/{event.max_members}
                                         </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm text-gray-900">{event.price} ₽</div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <button

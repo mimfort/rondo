@@ -1,25 +1,72 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { useQuery } from '@tanstack/react-query';
 import { authService } from './api/services';
+import type { User } from './types';
 import Main from './pages/Main';
 import Home from './pages/Home';
 import EventDetails from './pages/EventDetails';
 import Profile from './pages/Profile';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import AdminDashboard from './pages/AdminDashboard';
 
 const queryClient = new QueryClient();
 
-const App = () => {
-    const queryClient = useQueryClient();
-    const { data: user } = useQuery({
+const ProtectedAdminRoute = ({ children }: { children: React.ReactNode }) => {
+    const { data: userResponse, isLoading } = useQuery({
         queryKey: ['user'],
         queryFn: () => authService.getCurrentUser(),
         retry: false,
     });
+
+    if (isLoading) {
+        return <div>Загрузка...</div>;
+    }
+
+    console.log('ProtectedAdminRoute - userResponse:', userResponse);
+
+    if (!userResponse || !userResponse.data) {
+        console.log('ProtectedAdminRoute - нет данных пользователя');
+        return <Navigate to="/" replace />;
+    }
+
+    const user = userResponse.data;
+    console.log('ProtectedAdminRoute - user:', user);
+
+    if (user.admin_status !== 'admin') {
+        console.log('ProtectedAdminRoute - пользователь не админ:', user.admin_status);
+        return <Navigate to="/" replace />;
+    }
+
+    console.log('ProtectedAdminRoute - доступ разрешен');
+    return <>{children}</>;
+};
+
+const App = () => {
+    const queryClient = useQueryClient();
+    const { data: userResponse, isLoading } = useQuery({
+        queryKey: ['user'],
+        queryFn: async () => {
+            const response = await authService.getCurrentUser();
+            return response.data;
+        },
+        retry: false,
+    });
+
+    console.log('App - userResponse:', userResponse);
+
+    const user = userResponse as User | undefined;
+
+    useEffect(() => {
+        // Инициализируем токен при загрузке приложения
+        const token = localStorage.getItem('token');
+        if (token) {
+            authService.setAuthToken(token);
+        }
+    }, []);
 
     const handleLogout = async () => {
         try {
@@ -48,12 +95,25 @@ const App = () => {
                                     <Link to="/events" className="text-gray-700 hover:text-indigo-600">
                                         События
                                     </Link>
-                                    {user && (
-                                        <Link to="/profile" className="text-gray-700 hover:text-indigo-600">
-                                            Профиль
-                                        </Link>
+                                    {!isLoading && user && (
+                                        <>
+                                            <Link to="/profile" className="text-gray-700 hover:text-indigo-600">
+                                                Профиль
+                                            </Link>
+                                            {user.admin_status === 'admin' && (
+                                                <Link to="/admin-panel" className="text-gray-700 hover:text-indigo-600">
+                                                    Админ
+                                                </Link>
+                                            )}
+                                            <button
+                                                onClick={handleLogout}
+                                                className="text-gray-700 hover:text-indigo-600"
+                                            >
+                                                Выйти
+                                            </button>
+                                        </>
                                     )}
-                                    {!user ? (
+                                    {!isLoading && !user && (
                                         <>
                                             <Link to="/login" className="text-gray-700 hover:text-indigo-600">
                                                 Войти
@@ -65,13 +125,6 @@ const App = () => {
                                                 Регистрация
                                             </Link>
                                         </>
-                                    ) : (
-                                        <button
-                                            onClick={handleLogout}
-                                            className="text-gray-700 hover:text-indigo-600"
-                                        >
-                                            Выйти
-                                        </button>
                                     )}
                                 </div>
                             </div>
@@ -86,6 +139,14 @@ const App = () => {
                             <Route path="/profile" element={<Profile />} />
                             <Route path="/login" element={<Login />} />
                             <Route path="/register" element={<Register />} />
+                            <Route
+                                path="/admin-panel"
+                                element={
+                                    <ProtectedAdminRoute>
+                                        <AdminDashboard />
+                                    </ProtectedAdminRoute>
+                                }
+                            />
                         </Routes>
                     </main>
                 </div>

@@ -13,26 +13,23 @@ class AdminAuth(AuthenticationBackend):
         user = await auth_user(email, password)
         if user.admin_status == "admin":
             cookie = create_access_token({"sub": str(user.id)})
-        request.session.update({"token": cookie})
-
-        return True
+            request.session.update({"token": cookie})
+            return True
+        return False
 
     async def logout(self, request: Request) -> bool:
-        # Usually you'd want to just clear the session
         request.session.clear()
         return True
 
     async def authenticate(self, request: Request) -> bool:
         token = request.session.get("token")
-
         if not token:
             return False
-
-        if token:
-            await get_current_user(token)
-        else:
+        try:
+            user = await get_current_user(token)
+            return user.admin_status == "admin"
+        except Exception:
             return False
-        return True
 
 
 authentication_backend = AdminAuth(secret_key=settings.SECRET_KEY)

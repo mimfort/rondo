@@ -1,9 +1,11 @@
 export interface User {
     id: number;
     email: string;
-    first_name: string;
-    last_name: string;
-    phone: string;
+    username: string;
+    avatar_url: string | null;
+    is_active: boolean;
+    created_at: string;
+    admin_status: string;
 }
 
 export interface Event {
@@ -11,16 +13,18 @@ export interface Event {
     title: string;
     description: string;
     start_time: string;
+    end_time: string;
     location: string;
     max_members: number;
+    additional_members: number;
     registration_count: number;
-    available_spots: number;
-    total_spots: number;
+    media_url: string;
+    created_at: string;
 }
 
 export interface Registration {
     id: number;
-    event: Event;
+    event_id: number;
     user: User;
     status: string;
     created_at: string;
@@ -44,7 +48,6 @@ export interface RegisterForm {
 export interface EventForm {
     title: string;
     description: string;
-    media_url: string;
     max_members: number;
     location: string;
     start_time: string;

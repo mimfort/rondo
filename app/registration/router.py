@@ -11,10 +11,10 @@ from app.users.dao import UsersDao
 from app.users.dependencies import get_current_user
 from app.users.model import User
 
-router = APIRouter(prefix="/events", tags=["Соты регистрация на ивент"])
+router = APIRouter(prefix="/users/registration", tags=["Соты регистрация на ивент"])
 
 
-@router.post("/registration/{event_id}", response_model=RegistrationResponse)
+@router.post("/{event_id}", response_model=RegistrationResponse)
 async def registration_on_event(
     event_id: int, current_user: User = Depends(get_current_user)
 ):
@@ -35,7 +35,8 @@ async def registration_on_event(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="места закончились"
         )
-    if is_exist.start_time < datetime.now(UTC):
+    current_time = datetime.now(UTC)
+    if is_exist.start_time.replace(tzinfo=UTC) < current_time:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="ивент уже начался или прошел"
         )
@@ -70,7 +71,8 @@ async def disregistration_on_event(
             detail="вы не зарегистрированы на этот ивент или его не существует",
         )
     event = await EventDao.find_one_or_none(id=event_id)
-    if event.start_time < datetime.now(UTC):
+    current_time = datetime.now(UTC)
+    if event.start_time.replace(tzinfo=UTC) < current_time:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="ивент уже начался или прошел"
         )

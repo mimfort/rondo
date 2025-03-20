@@ -1,8 +1,10 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import { authService, registrationService, eventService } from '../api/services';
 import type { Registration, RegistrationWithEvent } from '../types';
+import { toast } from 'react-hot-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface User {
     id: number;
@@ -39,6 +41,25 @@ const Profile = () => {
             return registrationsWithEvents;
         },
     });
+
+    const queryClient = useQueryClient();
+
+    const cancelRegistrationMutation = useMutation({
+        mutationFn: async (eventId: number) => {
+            await registrationService.cancelRegistration(eventId);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['userRegistrations'] });
+            toast.success('Регистрация на событие отменена');
+        },
+        onError: (error: any) => {
+            toast.error(error.response?.data?.detail || 'Ошибка при отмене регистрации');
+        },
+    });
+
+    const handleCancelRegistration = (eventId: number) => {
+        cancelRegistrationMutation.mutate(eventId);
+    };
 
     if (isLoadingUser || isLoadingRegistrations) {
         return (
@@ -146,9 +167,18 @@ const Profile = () => {
                                                 {registration.event.location}
                                             </p>
                                         </div>
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            Зарегистрирован
-                                        </span>
+                                        <div className="flex items-center space-x-4">
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                Зарегистрирован
+                                            </span>
+                                            <button
+                                                onClick={() => handleCancelRegistration(registration.event.id)}
+                                                className="text-red-600 hover:text-red-800"
+                                                disabled={cancelRegistrationMutation.isPending}
+                                            >
+                                                Отменить
+                                            </button>
+                                        </div>
                                     </div>
                                 ))}
                                 {registrations?.length === 0 && (

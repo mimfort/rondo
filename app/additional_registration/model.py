@@ -16,11 +16,11 @@ class Registration_additional(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    event_id: Mapped[int] = mapped_column(ForeignKey("events.id"), nullable=False)
+    event_id: Mapped[int] = mapped_column(ForeignKey("event.id"), nullable=False)
 
     # Relationships
-    user: Mapped["User"] = relationship(back_populates="additional_registrations")
-    event: Mapped["Event"] = relationship(back_populates="additional_registrations")
+    user: Mapped["User"] = relationship(back_populates="registration_additional")
+    event: Mapped["Event"] = relationship(back_populates="registration_additional")
 
     def __str__(self):
         return f"Юзер{self.user_id} предзапись на ивент {self.event_id}"

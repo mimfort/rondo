@@ -31,10 +31,18 @@ class BaseDAO:
     @classmethod
     async def add(cls, **data):
         async with async_session_maker() as session:
-            query = insert(cls.model).values(**data).returning(cls.model)
-            result = await session.execute(query)
-            await session.commit()
-            return result.scalar()
+            try:
+                print(f"Попытка добавления записи в таблицу {cls.model.__tablename__}")
+                print(f"Данные для вставки: {data}")
+                query = insert(cls.model).values(**data).returning(cls.model)
+                print(f"SQL запрос: {query}")
+                result = await session.execute(query)
+                await session.commit()
+                return result.scalar()
+            except Exception as e:
+                print(f"Ошибка при добавлении записи: {str(e)}")
+                await session.rollback()
+                raise
 
     @classmethod
     async def update(cls, id: int, field: str, data):
