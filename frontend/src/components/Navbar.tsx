@@ -4,12 +4,16 @@ import { useState } from 'react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useQuery } from '@tanstack/react-query';
 import { authService } from '../api/services';
+import type { User } from '../types';
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
-    const { data: currentUser, isLoading } = useQuery({
+    const { data: currentUser, isLoading } = useQuery<User>({
         queryKey: ['currentUser'],
-        queryFn: authService.getCurrentUser,
+        queryFn: async () => {
+            const response = await authService.getCurrentUser();
+            return response.data;
+        },
         retry: false,
     });
 
@@ -38,7 +42,7 @@ const Navbar = () => {
                                     </Link>
                                     {currentUser.admin_status === 'admin' && (
                                         <Link
-                                            to="/admin"
+                                            to="/admin-panel"
                                             className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
                                         >
                                             Админ
@@ -112,7 +116,7 @@ const Navbar = () => {
                                 </Link>
                                 {currentUser.admin_status === 'admin' && (
                                     <Link
-                                        to="/admin"
+                                        to="/admin-panel"
                                         className="block pl-3 pr-4 py-2 border-l-4 text-base font-medium border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700"
                                     >
                                         Админ

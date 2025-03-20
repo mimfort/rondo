@@ -4,12 +4,15 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { eventService, authService } from '../api/services';
 import type { Event, EventForm, User } from '../types';
+import { API_URL } from '../api/config';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { register, handleSubmit, reset, formState: { errors } } = useForm<EventForm>();
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
+    const [showImageGallery, setShowImageGallery] = useState(false);
+    const [selectedExistingImage, setSelectedExistingImage] = useState<string | null>(null);
 
     const { data: userResponse } = useQuery({
         queryKey: ['user'],
@@ -32,6 +35,11 @@ const AdminDashboard = () => {
 
     const events = eventsResponse?.data as Event[] | undefined;
 
+    const { data: uploadedImages } = useQuery<string[]>({
+        queryKey: ['uploadedImages'],
+        queryFn: eventService.getUploadedImages,
+    });
+
     const createEventMutation = useMutation({
         mutationFn: async (data: EventForm) => {
             console.log('Отправляемые данные:', data);
@@ -45,10 +53,16 @@ const AdminDashboard = () => {
                     formData.append(key, String(value));
                 }
             });
-            if (selectedImage) {
-                console.log('Добавляем изображение:', selectedImage);
+
+            // Если выбрано существующее изображение, добавляем его путь
+            if (selectedExistingImage) {
+                formData.append('media_url', selectedExistingImage);
+            }
+            // Если выбран новый файл, добавляем его
+            else if (selectedImage) {
                 formData.append('image', selectedImage);
             }
+
             try {
                 const response = await eventService.createEvent(formData);
                 console.log('Ответ сервера:', response);
@@ -63,6 +77,8 @@ const AdminDashboard = () => {
             queryClient.invalidateQueries({ queryKey: ['events'] });
             reset();
             setSelectedImage(null);
+            setSelectedExistingImage(null);
+            setShowImageGallery(false);
         },
         onError: (error) => {
             console.error('Ошибка при создании события:', error);
@@ -86,7 +102,14 @@ const AdminDashboard = () => {
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             setSelectedImage(e.target.files[0]);
+            setSelectedExistingImage(null);
         }
+    };
+
+    const handleExistingImageSelect = (imagePath: string) => {
+        setSelectedExistingImage(imagePath);
+        setSelectedImage(null);
+        setShowImageGallery(false);
     };
 
     if (isLoading) {
@@ -130,29 +153,57 @@ const AdminDashboard = () => {
                         )}
                     </div>
 
-                    <div>
-                        <label htmlFor="image" className="block text-sm font-medium text-gray-700">
-                            Изображение
+                    <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                            Изображение события
                         </label>
-                        <input
-                            type="file"
-                            id="image"
-                            accept="image/*"
-                            onChange={handleImageChange}
-                            className="mt-1 block w-full text-sm text-gray-500
-                                file:mr-4 file:py-2 file:px-4
-                                file:rounded-md file:border-0
-                                file:text-sm file:font-semibold
-                                file:bg-indigo-50 file:text-indigo-700
-                                hover:file:bg-indigo-100"
-                        />
-                        {selectedImage && (
+                        <div className="flex items-center space-x-4">
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowImageGallery(!showImageGallery)}
+                                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                            >
+                                {showImageGallery ? 'Скрыть галерею' : 'Выбрать из загруженных'}
+                            </button>
+                        </div>
+
+                        {showImageGallery && uploadedImages && uploadedImages.length > 0 && (
+                            <div className="mt-4 grid grid-cols-3 gap-4">
+                                {uploadedImages.map((imagePath) => (
+                                    <div
+                                        key={imagePath}
+                                        onClick={() => handleExistingImageSelect(imagePath)}
+                                        className={`relative cursor-pointer rounded-lg overflow-hidden ${selectedExistingImage === imagePath ? 'ring-2 ring-indigo-500' : ''
+                                            }`}
+                                    >
+                                        <img
+                                            src={`${API_URL}${imagePath}`}
+                                            alt="Uploaded"
+                                            className="w-full h-32 object-cover"
+                                        />
+                                        {selectedExistingImage === imagePath && (
+                                            <div className="absolute inset-0 bg-indigo-500 bg-opacity-20 flex items-center justify-center">
+                                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {(selectedImage || selectedExistingImage) && (
                             <div className="mt-2">
-                                <img
-                                    src={URL.createObjectURL(selectedImage)}
-                                    alt="Preview"
-                                    className="h-32 w-32 object-cover rounded-lg"
-                                />
+                                <p className="text-sm text-gray-500">
+                                    Выбрано: {selectedImage ? selectedImage.name : selectedExistingImage}
+                                </p>
                             </div>
                         )}
                     </div>
@@ -277,7 +328,7 @@ const AdminDashboard = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm text-gray-900">
-                                            {event.registration_count}/{event.max_members}
+                                            {event.count_members}/{event.max_members}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

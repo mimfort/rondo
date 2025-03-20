@@ -17,9 +17,10 @@ export interface Event {
     location: string;
     max_members: number;
     additional_members: number;
-    registration_count: number;
+    count_members: number;
     media_url: string;
     created_at: string;
+    is_active: boolean;
 }
 
 export interface Registration {

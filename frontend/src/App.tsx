@@ -16,39 +16,41 @@ import AdminDashboard from './pages/AdminDashboard';
 const queryClient = new QueryClient();
 
 const ProtectedAdminRoute = ({ children }: { children: React.ReactNode }) => {
-    const { data: userResponse, isLoading } = useQuery({
-        queryKey: ['user'],
-        queryFn: () => authService.getCurrentUser(),
+    const { data: user, isLoading } = useQuery<User>({
+        queryKey: ['currentUser'],
+        queryFn: async () => {
+            const response = await authService.getCurrentUser();
+            console.log('ProtectedAdminRoute - getCurrentUser response:', response);
+            return response.data;
+        },
         retry: false,
     });
 
     if (isLoading) {
+        console.log('ProtectedAdminRoute - загрузка данных пользователя');
         return <div>Загрузка...</div>;
     }
 
-    console.log('ProtectedAdminRoute - userResponse:', userResponse);
+    console.log('ProtectedAdminRoute - полученные данные пользователя:', user);
 
-    if (!userResponse || !userResponse.data) {
-        console.log('ProtectedAdminRoute - нет данных пользователя');
+    if (!user) {
+        console.log('ProtectedAdminRoute - нет данных пользователя, перенаправление на главную');
         return <Navigate to="/" replace />;
     }
-
-    const user = userResponse.data;
-    console.log('ProtectedAdminRoute - user:', user);
 
     if (user.admin_status !== 'admin') {
-        console.log('ProtectedAdminRoute - пользователь не админ:', user.admin_status);
+        console.log('ProtectedAdminRoute - пользователь не админ:', user.admin_status, 'перенаправление на главную');
         return <Navigate to="/" replace />;
     }
 
-    console.log('ProtectedAdminRoute - доступ разрешен');
+    console.log('ProtectedAdminRoute - доступ разрешен, отображение панели администратора');
     return <>{children}</>;
 };
 
 const App = () => {
     const queryClient = useQueryClient();
-    const { data: userResponse, isLoading } = useQuery({
-        queryKey: ['user'],
+    const { data: user, isLoading } = useQuery<User>({
+        queryKey: ['currentUser'],
         queryFn: async () => {
             const response = await authService.getCurrentUser();
             return response.data;
@@ -56,9 +58,7 @@ const App = () => {
         retry: false,
     });
 
-    console.log('App - userResponse:', userResponse);
-
-    const user = userResponse as User | undefined;
+    console.log('App - user:', user);
 
     useEffect(() => {
         // Инициализируем токен при загрузке приложения
@@ -73,7 +73,7 @@ const App = () => {
             console.log('Logout button clicked');
             await authService.logout();
             // Инвалидируем кэш запроса пользователя после выхода
-            queryClient.invalidateQueries({ queryKey: ['user'] });
+            queryClient.invalidateQueries({ queryKey: ['currentUser'] });
         } catch (error) {
             console.error('Error during logout:', error);
         }

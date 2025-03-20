@@ -26,8 +26,11 @@ const Login = () => {
             }
             return response;
         },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['user'] });
+        onSuccess: async () => {
+            // После успешного входа получаем данные пользователя
+            const userResponse = await authService.getCurrentUser();
+            // Обновляем кэш React Query с данными пользователя
+            queryClient.setQueryData(['currentUser'], userResponse.data);
             navigate('/');
         },
     });

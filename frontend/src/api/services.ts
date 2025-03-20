@@ -4,7 +4,7 @@ import axios from 'axios';
 
 export const authService = {
     login: (data: LoginForm) => api.post('/users/auth', data),
-    register: (data: RegisterForm) => api.post('/users/register', data),
+    register: (data: RegisterForm) => api.post('/users/registration', data),
     getCurrentUser: () => api.get<User>('/users/me'),
     setAuthToken: (token: string) => {
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -47,6 +47,10 @@ export const eventService = {
         console.log('Full response:', response);
         console.log('Response data:', response.data);
         return response;
+    },
+    getUploadedImages: async () => {
+        const response = await api.get<{ images: string[] }>('/events/uploads');
+        return response.data.images;
     },
     createEvent: async (data: FormData) => {
         console.log('Создание события с данными:', Object.fromEntries(data.entries()));

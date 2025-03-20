@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { eventService, registrationService } from '../api/services';
 import { Event, Registration } from '../types';
 import toast from 'react-hot-toast';
@@ -10,6 +10,7 @@ import { API_URL } from '../api/config';
 const EventDetails = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     console.log('Event ID from params:', id);
 
     const { data: event, isLoading, error } = useQuery<Event>({
@@ -36,7 +37,7 @@ const EventDetails = () => {
         eventStartTime: event?.start_time,
         eventLocation: event?.location,
         eventMaxMembers: event?.max_members,
-        eventRegistrationCount: event?.registration_count,
+        eventRegistrationCount: event?.count_members,
         hasEvent: !!event
     });
 
@@ -63,8 +64,12 @@ const EventDetails = () => {
         if (!event) return;
 
         try {
-            await registrationService.registerForEvent(event.id);
+            const response = await registrationService.registerForEvent(event.id);
             setIsRegistered(true);
+            const updatedEvent = { ...event, count_members: event.count_members + 1 };
+            queryClient.setQueryData(['event', id], updatedEvent);
+            const currentRegistrations = queryClient.getQueryData<Registration[]>(['userRegistrations']) || [];
+            queryClient.setQueryData(['userRegistrations'], [...currentRegistrations, response.data]);
             toast.success('Вы успешно зарегистрировались на событие!');
         } catch (error: any) {
             console.error('Registration error:', error);
@@ -78,6 +83,13 @@ const EventDetails = () => {
         try {
             await registrationService.cancelRegistration(event.id);
             setIsRegistered(false);
+            const updatedEvent = { ...event, count_members: event.count_members - 1 };
+            queryClient.setQueryData(['event', id], updatedEvent);
+            const currentRegistrations = queryClient.getQueryData<Registration[]>(['userRegistrations']) || [];
+            queryClient.setQueryData(
+                ['userRegistrations'],
+                currentRegistrations.filter(reg => reg.event_id !== event.id)
+            );
             toast.success('Регистрация на событие отменена');
         } catch (error: any) {
             console.error('Cancel registration error:', error);
@@ -183,24 +195,24 @@ const EventDetails = () => {
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                         </svg>
                                         <div className="flex flex-col">
-                                            <span>Регистрация: {event.registration_count} из {event.max_members}</span>
+                                            <span>Регистрация: {event.count_members} из {event.max_members}</span>
                                             <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
                                                 <div
-                                                    className={`h-2.5 rounded-full ${event.registration_count >= event.max_members
-                                                            ? 'bg-red-600'
-                                                            : event.registration_count >= event.max_members * 0.8
-                                                                ? 'bg-yellow-500'
-                                                                : 'bg-green-600'
+                                                    className={`h-2.5 rounded-full ${event.count_members >= event.max_members
+                                                        ? 'bg-red-600'
+                                                        : event.count_members >= event.max_members * 0.8
+                                                            ? 'bg-yellow-500'
+                                                            : 'bg-green-600'
                                                         }`}
                                                     style={{
-                                                        width: `${Math.min((event.registration_count / event.max_members) * 100, 100)}%`
+                                                        width: `${Math.min((event.count_members / event.max_members) * 100, 100)}%`
                                                     }}
                                                 ></div>
                                             </div>
                                             <span className="text-sm mt-1">
-                                                {event.registration_count >= event.max_members
+                                                {event.count_members >= event.max_members
                                                     ? 'Мест нет'
-                                                    : `Осталось мест: ${event.max_members - event.registration_count}`
+                                                    : `Осталось мест: ${event.max_members - event.count_members}`
                                                 }
                                             </span>
                                         </div>
@@ -221,15 +233,15 @@ const EventDetails = () => {
                                 <div className="mt-8">
                                     <button
                                         onClick={isRegistered ? handleCancelRegistration : handleRegister}
-                                        disabled={event.max_members === event.registration_count && !isRegistered}
-                                        className={`w-full py-3 px-6 rounded-lg font-semibold text-white transition-colors ${event.max_members === event.registration_count && !isRegistered
+                                        disabled={event.max_members === event.count_members && !isRegistered}
+                                        className={`w-full py-3 px-6 rounded-lg font-semibold text-white transition-colors ${event.max_members === event.count_members && !isRegistered
                                             ? 'bg-gray-400 cursor-not-allowed'
                                             : isRegistered
                                                 ? 'bg-red-600 hover:bg-red-700'
                                                 : 'bg-indigo-600 hover:bg-indigo-700'
                                             }`}
                                     >
-                                        {event.max_members === event.registration_count && !isRegistered
+                                        {event.max_members === event.count_members && !isRegistered
                                             ? 'Места закончились'
                                             : isRegistered
                                                 ? 'Отменить регистрацию'

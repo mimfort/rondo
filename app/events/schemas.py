@@ -1,6 +1,6 @@
 from datetime import datetime
-
 from pydantic import BaseModel, Field
+from typing import List
 
 
 class EventBase(BaseModel):
@@ -11,6 +11,7 @@ class EventBase(BaseModel):
     location: str | None
     start_time: datetime
     end_time: datetime | None
+    count_members: int
 
 
 class EventCreate(EventBase):
@@ -24,3 +25,14 @@ class EventUpdate(EventBase):
 class EventResponse(EventBase):
     id: int
     created_at: datetime
+    updated_at: datetime
+    is_active: bool
+    additional_members: int
+
+
+class UploadedImage(BaseModel):
+    url: str
+
+
+class UploadedImagesResponse(BaseModel):
+    images: List[str]
