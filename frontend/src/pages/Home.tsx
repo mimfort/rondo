@@ -103,22 +103,20 @@ const Home = () => {
     );
 
     return (
-        <div className="space-y-8">
+        <div className="container mx-auto px-4 py-8">
             <div className="text-center mb-8">
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">СОТЫ</h1>
-                <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                    Молодежное пространство в Новом Девяткино. Место для отдыха, вдохновения, развития и работы.
-                    Бесплатное посещение для всех желающих.
+                <p className="text-gray-600 dark:text-gray-300 text-lg">
+                    Молодежное пространство в Новом Девяткино
                 </p>
             </div>
 
-            <div className="border-b border-gray-200">
+            <div className="border-b border-gray-200 dark:border-gray-700">
                 <nav className="-mb-px flex space-x-8">
                     <button
                         onClick={() => setActiveTab('upcoming')}
                         className={`${activeTab === 'upcoming'
-                            ? 'border-indigo-500 text-indigo-600'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
                             } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
                     >
                         Предстоящие ({upcomingEvents.length})
@@ -126,8 +124,8 @@ const Home = () => {
                     <button
                         onClick={() => setActiveTab('past')}
                         className={`${activeTab === 'past'
-                            ? 'border-indigo-500 text-indigo-600'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
                             } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
                     >
                         Прошедшие ({pastEvents.length})

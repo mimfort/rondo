@@ -6,7 +6,7 @@ from app.additional_registration.dao import RegistrationAddDao
 from app.events.dao import EventDao
 from app.registration.dao import RegistrationDao
 from app.registration.schemas import RegistrationResponse
-from app.tasks.tasks import send_about_registration
+from app.tasks.tasks import send_about_registration, send_about_new_event
 from app.users.dao import UsersDao
 from app.users.dependencies import get_current_user
 from app.users.model import User

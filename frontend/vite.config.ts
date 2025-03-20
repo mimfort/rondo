@@ -1,8 +1,32 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import svgr from 'vite-plugin-svgr';
 
 export default defineConfig({
-    plugins: [react()],
+    plugins: [
+        react(),
+        svgr({
+            svgrOptions: {
+                exportType: 'default',
+                ref: true,
+                svgoConfig: {
+                    plugins: [
+                        {
+                            name: 'preset-default',
+                            params: {
+                                overrides: {
+                                    removeViewBox: false
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        })
+    ],
+    css: {
+        postcss: './postcss.config.js',
+    },
     server: {
         host: true,
         port: 5173,
@@ -12,7 +36,6 @@ export default defineConfig({
             '/api': {
                 target: 'http://localhost:8000',
                 changeOrigin: true,
-                rewrite: (path) => path.replace(/^\/api/, ''),
             },
         },
         headers: {
@@ -21,4 +44,9 @@ export default defineConfig({
             'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         }
     },
+    resolve: {
+        alias: {
+            '@': '/src'
+        }
+    }
 }); 

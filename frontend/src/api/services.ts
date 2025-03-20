@@ -9,31 +9,22 @@ export const authService = {
     setAuthToken: (token: string) => {
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     },
+    removeAuthToken: () => {
+        delete api.defaults.headers.common['Authorization'];
+    },
     logout: async () => {
-        console.log('Starting logout process...');
         try {
-            console.log('Sending quit request to /users/quit...');
             const response = await api.get('/users/quit');
-            console.log('Quit response:', response);
-
-            console.log('Clearing local storage...');
-            localStorage.clear();
-            sessionStorage.clear();
-
-            console.log('Removing Authorization header...');
+            localStorage.removeItem('token');
             delete api.defaults.headers.common['Authorization'];
-
-            console.log('Redirecting to home page...');
-            window.location.replace('/');
+            return response;
         } catch (error) {
-            console.error('Error during logout:', error);
-            // В случае ошибки все равно очищаем все данные
-            localStorage.clear();
-            sessionStorage.clear();
+            localStorage.removeItem('token');
             delete api.defaults.headers.common['Authorization'];
-            window.location.replace('/');
+            throw error;
         }
-    }
+    },
+    checkAuth: () => api.get('/users/me'),
 };
 
 export const eventService = {
@@ -76,6 +67,10 @@ export const eventService = {
         }
     },
     deleteEvent: (id: number) => api.delete(`/events/${id}`),
+    sendNotification: async (eventId: number) => {
+        const response = await api.post(`/events/notification/${eventId}`);
+        return response.data;
+    }
 };
 
 export const registrationService = {

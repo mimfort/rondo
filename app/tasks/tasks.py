@@ -105,3 +105,35 @@ def send_about_registration(
     except Exception as e:
         logger.error(f"Ошибка {str(e)}")
         return {"status": "error", "message": str(e)}
+
+@celery.task(name="send_about_new_event")
+def send_about_new_event(
+    to: str, username: str, event_name: str, time_start: datetime
+):
+    try:
+        smtp_server = celery.conf.smtp_server
+        smtp_port = celery.conf.smtp_port
+        smtp_username = celery.conf.smtp_username
+        smtp_password = celery.conf.smtp_password
+        email_from = celery.conf.email_from
+
+        msg = MIMEMultipart()
+        msg["From"] = email_from
+        msg["To"] = to
+        msg["Subject"] = "Появилось новое мероприятие"
+
+        body = f"""
+        <h1>Привет, {username}!</h1>  
+        <p>Появилось новое мероприятие: {event_name}</p>  
+        <p>Начало: {SpecialConvert.format_datetime_moscow(time_start)}</p>
+        <p>С уважением,  
+        <br>Команда Соты</p>
+        """
+        msg.attach(MIMEText(body, "html"))
+        with smtplib.SMTP_SSL(smtp_server, smtp_port) as server:
+            server.login(smtp_username, smtp_password)
+            server.send_message(msg)
+        return {"status": "success"}
+    except Exception as e:
+        logger.error(f"Ошибка {str(e)}")
+        return {"status": "error", "message": str(e)}

@@ -5,7 +5,7 @@ import pytz
 
 class SpecialConvert:
     @classmethod
-    def format_datetime_moscow(dt: datetime) -> str:
+    def format_datetime_moscow(cls, dt: datetime) -> str:
         # Переводим дату в московский часовой пояс
         moscow_tz = pytz.timezone("Europe/Moscow")
         dt_msk = dt.astimezone(moscow_tz)

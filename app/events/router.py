@@ -2,12 +2,18 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File,
 from typing import List
 import os
 from datetime import datetime
+import logging
 
+from app.users.dao import UsersDao
 from app.events.dao import EventDao
 from app.events.schemas import EventCreate, EventResponse, UploadedImagesResponse
 from app.users.dependencies import get_current_user
 from app.users.model import User
 from app.registration.dao import RegistrationDao
+from app.tasks.tasks import send_about_new_event
+
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/events", tags=["События"])
 
 UPLOAD_DIR = "uploads"
@@ -168,3 +174,38 @@ async def delete_event(event_id: int, current_user: User = Depends(get_current_u
         )
     await EventDao.delete(id=event_id)
     return {"message": "Событие успешно удалено"}
+
+@router.post("/notification/{event_id}")
+async def send_notification(event_id: int, current_user: User = Depends(get_current_user)):
+    if current_user.admin_status == "user":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="У вас нет прав для отправки уведомлений",
+        )
+    event = await EventDao.find_one_or_none(id=event_id)
+    if not event:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Событие не найдено",
+        )
+    users = await UsersDao.find_all()
+    try:
+        for user in users:
+            # Преобразуем дату в datetime, если она не является datetime
+            start_time = event.start_time
+            if isinstance(start_time, str):
+                start_time = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
+            send_about_new_event.delay(
+                to=user.email,
+                username=user.username,
+                event_name=event.title,
+                time_start=start_time
+            )
+        return {"message": "Уведомления успешно отправлены"}
+    except Exception as e:
+        logger.error(f"Ошибка при отправке уведомлений: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Ошибка при отправке уведомлений: {str(e)}"
+        )
+        
