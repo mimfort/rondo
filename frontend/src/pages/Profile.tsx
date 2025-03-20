@@ -1,10 +1,12 @@
 import React from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { authService, registrationService, eventService } from '../api/services';
 import type { Registration, RegistrationWithEvent } from '../types';
 import { toast } from 'react-hot-toast';
 import { useQueryClient } from '@tanstack/react-query';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 interface User {
     id: number;
@@ -62,135 +64,262 @@ const Profile = () => {
     };
 
     if (isLoadingUser || isLoadingRegistrations) {
-        return (
-            <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-            </div>
-        );
+        return <LoadingSpinner />;
     }
 
     if (error) {
-        console.error('Error loading registrations:', error);
         return (
-            <div className="text-center py-8">
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center py-8"
+            >
                 <p className="text-red-600">Ошибка при загрузке регистраций</p>
-            </div>
+            </motion.div>
         );
     }
 
+    const tabVariants = {
+        inactive: {
+            backgroundColor: "rgba(255, 255, 255, 0)",
+            color: "rgb(107, 114, 128)",
+            transition: { duration: 0.2 }
+        },
+        active: {
+            backgroundColor: "rgba(99, 102, 241, 0.1)",
+            color: "rgb(67, 56, 202)",
+            transition: { duration: 0.2 }
+        }
+    };
+
+    const contentVariants = {
+        hidden: { opacity: 0, x: -20 },
+        visible: { opacity: 1, x: 0 },
+        exit: { opacity: 0, x: 20 }
+    };
+
     return (
-        <div className="max-w-4xl mx-auto">
-            <div className="bg-white shadow-lg rounded-lg overflow-hidden">
-                <div className="px-4 py-5 sm:px-6">
+        <div className="max-w-4xl mx-auto px-4 py-8">
+            <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700"
+            >
+                <div className="px-6 py-6">
                     <div className="flex space-x-4">
-                        <button
+                        <motion.button
                             onClick={() => setActiveTab('profile')}
-                            className={`px-4 py-2 text-sm font-medium rounded-md ${activeTab === 'profile'
-                                ? 'bg-indigo-100 text-indigo-700'
-                                : 'text-gray-500 hover:text-gray-700'
-                                }`}
+                            className={`px-6 py-3 text-base font-medium rounded-xl transition-all duration-200
+                                ${activeTab === 'profile' ? 'text-indigo-700 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400'}
+                            `}
+                            variants={tabVariants}
+                            animate={activeTab === 'profile' ? 'active' : 'inactive'}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                         >
                             Профиль
-                        </button>
-                        <button
+                        </motion.button>
+                        <motion.button
                             onClick={() => setActiveTab('registrations')}
-                            className={`px-4 py-2 text-sm font-medium rounded-md ${activeTab === 'registrations'
-                                ? 'bg-indigo-100 text-indigo-700'
-                                : 'text-gray-500 hover:text-gray-700'
-                                }`}
+                            className={`px-6 py-3 text-base font-medium rounded-xl transition-all duration-200
+                                ${activeTab === 'registrations' ? 'text-indigo-700 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400'}
+                            `}
+                            variants={tabVariants}
+                            animate={activeTab === 'registrations' ? 'active' : 'inactive'}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                         >
                             Мои регистрации
-                        </button>
+                        </motion.button>
                     </div>
                 </div>
 
-                <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
-                    {activeTab === 'profile' ? (
-                        <div className="space-y-6">
-                            <div>
-                                <h3 className="text-lg font-medium leading-6 text-gray-900">
-                                    Информация о пользователе
-                                </h3>
-                                <div className="mt-4 space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700">
-                                            Имя пользователя
-                                        </label>
-                                        <div className="mt-1 text-sm text-gray-900">{user?.username}</div>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700">Email</label>
-                                        <div className="mt-1 text-sm text-gray-900">{user?.email}</div>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700">
-                                            Дата регистрации
-                                        </label>
-                                        <div className="mt-1 text-sm text-gray-900">
-                                            {user?.created_at ? new Date(user.created_at).toLocaleDateString('ru-RU') : 'Не указана'}
-                                        </div>
-                                    </div>
-                                    {user?.avatar_url && (
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">
-                                                Аватар
-                                            </label>
-                                            <div className="mt-1">
-                                                <img
+                <div className="border-t border-gray-100 dark:border-gray-700">
+                    <AnimatePresence mode="wait">
+                        {activeTab === 'profile' ? (
+                            <motion.div
+                                key="profile"
+                                variants={contentVariants}
+                                initial="hidden"
+                                animate="visible"
+                                exit="exit"
+                                className="p-6"
+                            >
+                                <div className="space-y-8">
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.1 }}
+                                        className="flex items-center space-x-6"
+                                    >
+                                        <div className="relative">
+                                            {user?.avatar_url ? (
+                                                <motion.img
                                                     src={user.avatar_url}
                                                     alt="Аватар пользователя"
-                                                    className="h-20 w-20 rounded-full object-cover"
+                                                    className="h-24 w-24 rounded-full object-cover ring-4 ring-indigo-50 dark:ring-gray-700"
+                                                    whileHover={{ scale: 1.1 }}
+                                                    transition={{ type: "spring", stiffness: 300 }}
                                                 />
-                                            </div>
+                                            ) : (
+                                                <motion.div
+                                                    className="h-24 w-24 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-2xl font-bold"
+                                                    whileHover={{ scale: 1.1 }}
+                                                    transition={{ type: "spring", stiffness: 300 }}
+                                                >
+                                                    {user?.username.charAt(0).toUpperCase()}
+                                                </motion.div>
+                                            )}
+                                            <motion.div
+                                                className="absolute -bottom-1 -right-1 h-8 w-8 bg-green-400 rounded-full border-4 border-white dark:border-gray-800"
+                                                initial={{ scale: 0 }}
+                                                animate={{ scale: 1 }}
+                                                transition={{ delay: 0.2 }}
+                                            />
                                         </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    ) : (
-                        <div>
-                            <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">
-                                Мои регистрации
-                            </h3>
-                            <div className="space-y-4">
-                                {registrations?.map((registration) => (
-                                    <div
-                                        key={registration.id}
-                                        className="bg-gray-50 rounded-lg p-4 flex justify-between items-center"
-                                    >
                                         <div>
-                                            <h4 className="text-sm font-medium text-gray-900">
-                                                {registration.event.title}
-                                            </h4>
-                                            <p className="text-sm text-gray-500">
-                                                {new Date(registration.event.start_time).toLocaleDateString('ru-RU')} •{' '}
-                                                {registration.event.location}
+                                            <motion.h2
+                                                className="text-2xl font-bold text-gray-900 dark:text-white"
+                                                initial={{ opacity: 0, x: -20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: 0.2 }}
+                                            >
+                                                {user?.username}
+                                            </motion.h2>
+                                            <motion.p
+                                                className="text-gray-500 dark:text-gray-400"
+                                                initial={{ opacity: 0, x: -20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: 0.3 }}
+                                            >
+                                                {user?.email}
+                                            </motion.p>
+                                        </div>
+                                    </motion.div>
+
+                                    <motion.div
+                                        className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.4 }}
+                                    >
+                                        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-6 backdrop-blur-sm">
+                                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                                                Дата регистрации
+                                            </h3>
+                                            <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                                                {user?.created_at ? new Date(user.created_at).toLocaleDateString('ru-RU', {
+                                                    year: 'numeric',
+                                                    month: 'long',
+                                                    day: 'numeric'
+                                                }) : 'Не указана'}
                                             </p>
                                         </div>
-                                        <div className="flex items-center space-x-4">
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                Зарегистрирован
-                                            </span>
-                                            <button
-                                                onClick={() => handleCancelRegistration(registration.event.id)}
-                                                className="text-red-600 hover:text-red-800"
-                                                disabled={cancelRegistrationMutation.isPending}
-                                            >
-                                                Отменить
-                                            </button>
+                                        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-6 backdrop-blur-sm">
+                                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                                                Количество регистраций
+                                            </h3>
+                                            <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                                                {registrations?.length || 0}
+                                            </p>
                                         </div>
-                                    </div>
-                                ))}
-                                {registrations?.length === 0 && (
-                                    <p className="text-gray-500 text-center py-4">
-                                        У вас пока нет регистраций на события
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-                    )}
+                                    </motion.div>
+                                </div>
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                key="registrations"
+                                variants={contentVariants}
+                                initial="hidden"
+                                animate="visible"
+                                exit="exit"
+                                className="p-6"
+                            >
+                                <div className="space-y-4">
+                                    {registrations?.map((registration, index) => (
+                                        <motion.div
+                                            key={registration.id}
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: index * 0.1 }}
+                                            className="group bg-gray-50 dark:bg-gray-700/50 rounded-xl p-6 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
+                                        >
+                                            <div className="flex flex-col sm:flex-row justify-between gap-4">
+                                                <div className="space-y-2">
+                                                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-200">
+                                                        {registration.event.title}
+                                                    </h4>
+                                                    <div className="flex flex-col gap-2">
+                                                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                                            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                            </svg>
+                                                            <span className="font-medium truncate">{registration.event.location}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                                            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                            </svg>
+                                                            <span className="font-medium">{new Date(registration.event.start_time).toLocaleDateString('ru-RU', {
+                                                                year: 'numeric',
+                                                                month: 'long',
+                                                                day: 'numeric',
+                                                                hour: '2-digit',
+                                                                minute: '2-digit'
+                                                            })}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                                                    <span className="text-sm font-medium text-green-600 dark:text-green-400 whitespace-nowrap">
+                                                        Зарегистрирован
+                                                    </span>
+                                                    <motion.button
+                                                        whileHover={{ scale: 1.05 }}
+                                                        whileTap={{ scale: 0.95 }}
+                                                        onClick={() => handleCancelRegistration(registration.event.id)}
+                                                        className="text-sm px-3 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors duration-200 flex items-center gap-1 whitespace-nowrap"
+                                                    >
+                                                        <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>
+                                                        Отменить
+                                                    </motion.button>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                    {registrations?.length === 0 && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="text-center py-12"
+                                        >
+                                            <svg
+                                                className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600 mb-4"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                />
+                                            </svg>
+                                            <p className="text-gray-500 dark:text-gray-400 text-lg">
+                                                У вас пока нет регистраций на события
+                                            </p>
+                                        </motion.div>
+                                    )}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 };

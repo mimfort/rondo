@@ -25,6 +25,8 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import PageTransition from './components/PageTransition';
 import ErrorPage from './components/ErrorPage';
+import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
 
 const Layout = () => {
     return (
@@ -43,66 +45,24 @@ const Layout = () => {
     );
 };
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-    const { data: user, isLoading } = useQuery<User>({
-        queryKey: ['currentUser'],
-        queryFn: async () => {
-            const response = await authService.getCurrentUser();
-            return response.data;
-        },
-        retry: false,
-    });
-
-    if (isLoading) {
-        return (
-            <div className="flex justify-center items-center h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-            </div>
-        );
-    }
-
-    if (!user) {
-        return <Navigate to="/" replace />;
-    }
-
-    return <>{children}</>;
-};
-
-const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-    const { data: user, isLoading } = useQuery<User>({
-        queryKey: ['currentUser'],
-        queryFn: async () => {
-            const response = await authService.getCurrentUser();
-            return response.data;
-        },
-        retry: false,
-    });
-
-    if (isLoading) {
-        return (
-            <div className="flex justify-center items-center h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-            </div>
-        );
-    }
-
-    if (!user || user.admin_status !== 'admin') {
-        return <Navigate to="/" replace />;
-    }
-
-    return <>{children}</>;
-};
-
 const router = createBrowserRouter(
     createRoutesFromElements(
         <Route path="/" element={<Layout />} errorElement={<ErrorPage />}>
-            <Route index element={<Main />} />
-            <Route path="events" element={<Home />} />
-            <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-            <Route path="events/:id" element={<EventDetails />} />
-            <Route path="admin-panel" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-            <Route path="login" element={<Login />} />
-            <Route path="register" element={<Register />} />
+            <Route index element={<PageTransition><Main /></PageTransition>} />
+            <Route path="events" element={<PageTransition><Home /></PageTransition>} />
+            <Route path="profile" element={
+                <ProtectedRoute>
+                    <PageTransition><Profile /></PageTransition>
+                </ProtectedRoute>
+            } />
+            <Route path="events/:id" element={<PageTransition><EventDetails /></PageTransition>} />
+            <Route path="admin-panel" element={
+                <AdminRoute>
+                    <PageTransition><AdminDashboard /></PageTransition>
+                </AdminRoute>
+            } />
+            <Route path="login" element={<PageTransition><Login /></PageTransition>} />
+            <Route path="register" element={<PageTransition><Register /></PageTransition>} />
             <Route path="*" element={<Navigate to="/" />} />
         </Route>
     ),

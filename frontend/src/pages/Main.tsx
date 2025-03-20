@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import VkIcon from '../assets/icons/vk.svg';
 import TelegramIcon from '../assets/icons/telegram.svg';
 
@@ -14,6 +14,13 @@ const YANDEX_MAPS_API_KEY = import.meta.env.VITE_YANDEX_MAPS_API_KEY;
 
 const Main = () => {
     const [mapError, setMapError] = useState<string | null>(null);
+    const { scrollY } = useScroll();
+
+    // Параллакс эффекты
+    const heroOpacity = useTransform(scrollY, [0, 300], [1, 0]);
+    const heroY = useTransform(scrollY, [0, 300], [0, 150]);
+    const featuresY = useTransform(scrollY, [300, 600], [50, 0]);
+    const featuresOpacity = useTransform(scrollY, [300, 400], [0, 1]);
 
     useEffect(() => {
         const mapContainer = document.getElementById('map');
@@ -101,56 +108,136 @@ const Main = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white dark:from-gray-900 dark:to-gray-800">
-            {/* Hero Section */}
+        <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white dark:from-gray-900 dark:to-gray-800 overflow-hidden">
+            {/* Hero Section с параллаксом */}
             <motion.div
-                className="relative h-[600px] flex items-center justify-center overflow-hidden bg-indigo-900 dark:bg-gray-800"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 1 }}
+                className="relative h-[600px] flex items-center justify-center overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
+                style={{ opacity: heroOpacity, y: heroY }}
             >
-                <div className="relative z-10 text-center text-white px-4">
-                    <motion.h1
-                        className="text-6xl font-bold mb-6 text-white"
-                        initial={{ y: 50, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
+                {/* Анимированный фон */}
+                <motion.div
+                    className="absolute inset-0 w-full h-full opacity-30"
+                    style={{
+                        backgroundImage: 'url(/hero-bg.jpg)',
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                    }}
+                    initial={{ scale: 1.2 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 20, repeat: Infinity, repeatType: "reverse" }}
+                />
+
+                {/* Декоративные элементы */}
+                <motion.div
+                    className="absolute inset-0 opacity-40"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 0.4 }}
+                    transition={{ duration: 2 }}
+                >
+                    <div className="absolute top-10 left-10 w-32 h-32 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-3xl" />
+                    <div className="absolute bottom-10 right-10 w-32 h-32 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-3xl" />
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full blur-3xl opacity-30" />
+                </motion.div>
+
+                {/* Основной контент */}
+                <div className="relative z-10 text-center">
+                    <motion.div
+                        className="flex flex-col items-center px-6"
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8 }}
                     >
-                        СОТЫ
-                    </motion.h1>
-                    <motion.p
-                        className="text-xl mb-8 max-w-2xl mx-auto text-white"
-                        initial={{ y: 50, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ duration: 0.8, delay: 0.2 }}
-                    >
-                        Молодежное пространство в Новом Девяткино
-                    </motion.p>
-                    <motion.div
-                        initial={{ y: 50, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ duration: 0.8, delay: 0.4 }}
-                    >
-                        <Link
-                            to="/events"
-                            className="bg-white dark:bg-gray-700 text-indigo-900 dark:text-white px-8 py-3 rounded-full font-semibold hover:bg-indigo-50 dark:hover:bg-gray-600 transition-colors duration-300"
+                        <motion.div
+                            className="mb-8 relative"
+                            whileHover={{ scale: 1.05 }}
+                            transition={{ type: "spring", stiffness: 300 }}
                         >
-                            Смотреть события
-                        </Link>
+                            <motion.h1
+                                className="text-8xl font-black tracking-tighter mb-2"
+                                style={{
+                                    background: 'linear-gradient(to right, #fff, #e0e7ff)',
+                                    WebkitBackgroundClip: 'text',
+                                    WebkitTextFillColor: 'transparent',
+                                }}
+                                initial={{ opacity: 0, y: -20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6 }}
+                            >
+                                СОТЫ
+                            </motion.h1>
+                            <motion.div
+                                className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-500 blur-xl opacity-30"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 0.3 }}
+                                transition={{ duration: 1 }}
+                            />
+                        </motion.div>
+
+                        <motion.p
+                            className="text-2xl font-medium text-gray-200 mb-12 max-w-2xl"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.8, delay: 0.2 }}
+                        >
+                            Молодежное пространство в Новом Девяткино
+                        </motion.p>
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8, delay: 0.4 }}
+                        >
+                            <Link
+                                to="/events"
+                                className="group relative inline-flex items-center gap-2 px-8 py-4 bg-white/10 backdrop-blur-sm rounded-full text-white font-medium overflow-hidden transition-all duration-300 hover:bg-white/20"
+                            >
+                                <motion.span
+                                    initial={{ x: 0 }}
+                                    whileHover={{ x: -4 }}
+                                    transition={{ type: "spring", stiffness: 400 }}
+                                >
+                                    Смотреть события
+                                </motion.span>
+                                <motion.svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M13 7l5 5m0 0l-5 5m5-5H6"
+                                    />
+                                </motion.svg>
+                                <motion.div
+                                    className="absolute inset-0 -z-10 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                    initial={{ opacity: 0 }}
+                                    whileHover={{ opacity: 1 }}
+                                />
+                            </Link>
+                        </motion.div>
                     </motion.div>
                 </div>
             </motion.div>
 
-            {/* Features Section */}
+            {/* Features Section с параллаксом */}
             <motion.div
                 className="py-20 px-4"
-                variants={staggerContainer}
-                initial="initial"
-                whileInView="animate"
-                viewport={{ once: true }}
+                style={{ opacity: featuresOpacity, y: featuresY }}
             >
                 <div className="max-w-7xl mx-auto">
-                    <h2 className="text-4xl font-bold text-center text-indigo-900 dark:text-white mb-16">О пространстве</h2>
+                    <motion.h2
+                        className="text-4xl font-bold text-center text-indigo-900 dark:text-white mb-16"
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6 }}
+                    >
+                        О пространстве
+                    </motion.h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                         <motion.div
                             className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
