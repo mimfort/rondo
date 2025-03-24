@@ -9,20 +9,25 @@ import LoadingSpinner from '../components/LoadingSpinner';
 
 const Home = () => {
     const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
-    const { data: eventsResponse, isLoading } = useQuery({
+
+    // Получаем все события
+    const { data: events, isLoading: isLoadingEvents } = useQuery({
         queryKey: ['events'],
-        queryFn: () => eventService.getAllEvents(),
+        queryFn: async () => {
+            const response = await eventService.getAllEvents();
+            return response.data;
+        }
     });
 
-    if (isLoading) {
+    if (isLoadingEvents) {
         return <LoadingSpinner />;
     }
 
     const now = new Date();
-    const upcomingEvents = eventsResponse?.data.filter(
+    const upcomingEvents = events?.filter(
         (event) => new Date(event.start_time) > now
     ) || [];
-    const pastEvents = eventsResponse?.data.filter(
+    const pastEvents = events?.filter(
         (event) => new Date(event.start_time) <= now
     ) || [];
 
@@ -148,8 +153,25 @@ const Home = () => {
                                             d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                                         />
                                     </svg>
-                                    {event.max_members - event.count_members} из {event.max_members} мест
+                                    {event.count_members} из {event.max_members} мест занято
                                 </div>
+                            </div>
+
+                            {/* Отображение тегов */}
+                            <div className="flex flex-wrap gap-2 mt-4">
+                                {event.tags && event.tags.map((tag, index) => (
+                                    <div
+                                        key={typeof tag === 'string' ? `${event.id}-${index}` : tag.id}
+                                        className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200"
+                                    >
+                                        {typeof tag === 'string' ? tag : tag.name}
+                                    </div>
+                                ))}
+                                {(!event.tags || event.tags.length === 0) && (
+                                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                                        Нет тегов
+                                    </span>
+                                )}
                             </div>
                         </div>
                     </Link>

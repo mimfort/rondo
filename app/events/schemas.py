@@ -28,6 +28,7 @@ class EventResponse(EventBase):
     updated_at: datetime
     is_active: bool
     additional_members: int
+    tags: List[str]
 
 
 class UploadedImage(BaseModel):

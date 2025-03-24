@@ -11,7 +11,8 @@ from app.users.model import User
 from app.events.model import Event
 from app.registration.model import Registration
 from app.additional_registration.model import Registration_additional
-
+from app.event_tags.model import EventTag
+from app.tags.model import Tag
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config

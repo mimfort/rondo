@@ -1,4 +1,6 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { User } from '../types';
+import { API_URL } from '../api/config';
 
 interface LoginCredentials {
     email: string;
@@ -10,13 +12,29 @@ interface RegisterCredentials extends LoginCredentials {
 }
 
 export const useAuth = () => {
+    const { data: currentUser, isLoading } = useQuery<User>({
+        queryKey: ['currentUser'],
+        queryFn: async () => {
+            const response = await fetch(`${API_URL}/users/me`, {
+                credentials: 'include'
+            });
+            if (!response.ok) {
+                throw new Error('Not authenticated');
+            }
+            return response.json();
+        },
+        retry: false,
+        staleTime: 1000 * 60 * 5, // 5 minutes
+    });
+
     const loginMutation = useMutation({
         mutationFn: async (credentials: LoginCredentials) => {
-            const response = await fetch('/api/auth/login', {
+            const response = await fetch(`${API_URL}/api/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
                 body: JSON.stringify(credentials),
             });
             if (!response.ok) {
@@ -28,11 +46,12 @@ export const useAuth = () => {
 
     const registerMutation = useMutation({
         mutationFn: async (credentials: RegisterCredentials) => {
-            const response = await fetch('/api/auth/register', {
+            const response = await fetch(`${API_URL}/api/auth/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
                 body: JSON.stringify(credentials),
             });
             if (!response.ok) {
@@ -43,8 +62,9 @@ export const useAuth = () => {
     });
 
     const logout = async () => {
-        await fetch('/api/auth/logout', {
+        await fetch(`${API_URL}/api/auth/logout`, {
             method: 'POST',
+            credentials: 'include'
         });
     };
 
@@ -52,7 +72,8 @@ export const useAuth = () => {
         login: loginMutation.mutateAsync,
         register: registerMutation.mutateAsync,
         logout,
-        isLoading: loginMutation.isPending || registerMutation.isPending,
+        isLoading,
         error: loginMutation.error || registerMutation.error,
+        currentUser
     };
 }; 

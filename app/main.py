@@ -19,6 +19,8 @@ from app.database import async_engine as engine
 from app.events.router import router as event_router
 from app.registration.router import router as registration_router
 from app.users.router import router as users_router
+from app.event_tags.router import router as event_tags_router
+from app.tags.router import router as tags_router
 
 
 @asynccontextmanager
@@ -35,6 +37,8 @@ app = FastAPI(lifespan=lifespan)
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
 ]
 
 app.add_middleware(
@@ -62,3 +66,5 @@ app.include_router(event_router)
 app.include_router(users_router)
 app.include_router(registration_router)
 app.include_router(additional_reg_router)
+app.include_router(event_tags_router)
+app.include_router(tags_router)

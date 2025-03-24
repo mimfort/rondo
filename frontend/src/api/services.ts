@@ -1,6 +1,10 @@
 import api from './config';
-import type { Event, LoginForm, RegisterForm, EventForm, Registration, User } from '../types';
+import type { Event, LoginForm, RegisterForm, EventForm, Registration, User, Tag, TagCreate, EventTag } from '../types';
 import axios from 'axios';
+import { API_URL } from './config';
+
+// Получаем базовый URL из конфигурации axios
+const BASE_URL = api.defaults.baseURL || '';
 
 export const authService = {
     login: (data: LoginForm) => api.post('/users/auth', data),
@@ -29,19 +33,49 @@ export const authService = {
 
 export const eventService = {
     getAllEvents: async () => {
-        const response = await api.get<Event[]>('/events/');
-        console.log('All events response:', response.data);
-        return response;
+        const response = await api.get<Event[]>('/events');
+        // Преобразуем URL изображений
+        const events = response.data.map(event => ({
+            ...event,
+            media_url: event.media_url ? (
+                event.media_url.startsWith('http') ?
+                    new URL(event.media_url).pathname :
+                    event.media_url
+            ) : null
+        }));
+        return { data: events };
     },
     getEventById: async (id: number) => {
         const response = await api.get<Event>(`/events/${id}`);
-        console.log('Full response:', response);
-        console.log('Response data:', response.data);
-        return response;
+        // Преобразуем URL изображения
+        const event = {
+            ...response.data,
+            media_url: response.data.media_url ? (
+                response.data.media_url.startsWith('http') ?
+                    new URL(response.data.media_url).pathname :
+                    response.data.media_url
+            ) : null
+        };
+        return { data: event };
     },
     getUploadedImages: async () => {
-        const response = await api.get<{ images: string[] }>('/events/uploads');
-        return response.data.images;
+        try {
+            console.log('Запрашиваем загруженные изображения...');
+            const response = await api.get<{ images: string[] }>('/events/uploads');
+            console.log('Ответ с изображениями:', response.data);
+            // Возвращаем пути к изображениям как есть
+            return response.data.images.map(image => {
+                // Если путь уже начинается с /uploads, возвращаем как есть
+                if (image.startsWith('/uploads/')) {
+                    return image;
+                }
+                // Иначе добавляем /uploads/
+                return `/uploads/${image}`;
+            });
+        } catch (error) {
+            console.error('Ошибка при получении изображений:', error);
+            throw error;
+        }
     },
     createEvent: async (data: FormData) => {
         console.log('Создание события с данными:', Object.fromEntries(data.entries()));
@@ -51,18 +85,18 @@ export const eventService = {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-            console.log('Ответ на создание события:', response);
-            return response;
+            // Преобразуем URL изображения если оно есть
+            const event = {
+                ...response.data,
+                media_url: response.data.media_url ? (
+                    response.data.media_url.startsWith('http') ?
+                        new URL(response.data.media_url).pathname :
+                        response.data.media_url
+                ) : null
+            };
+            return { data: event };
         } catch (error) {
             console.error('Ошибка при создании события:', error);
-            if (axios.isAxiosError(error)) {
-                console.error('Детали ошибки:', {
-                    status: error.response?.status,
-                    statusText: error.response?.statusText,
-                    data: error.response?.data,
-                    headers: error.response?.headers,
-                });
-            }
             throw error;
         }
     },
@@ -77,4 +111,28 @@ export const registrationService = {
     registerForEvent: (eventId: number) => api.post<Registration>(`/users/registration/${eventId}`),
     getUserRegistrations: () => api.get<Registration[]>('/users/registration/my_registration/info'),
     cancelRegistration: (eventId: number) => api.post(`/users/registration/disregistration/${eventId}`),
+};
+
+export const tagService = {
+    getAllTags: () => api.get<{ tags: Tag[] }>('/tags/all'),
+    getTagById: (id: number) => api.get<Tag>(`/tags/${id}`),
+    createTag: (data: TagCreate) =>
+        api.post<Tag>('/tags/create', null, {
+            params: data
+        }),
+    updateTag: (id: number, data: TagCreate) => api.put<Tag>(`/tags/update/${id}`, null, {
+        params: {
+            name: data.name,
+            description: data.description
+        }
+    }),
+    deleteTag: (id: number) => api.delete(`/tags/delete/${id}`),
+    addTagToEvent: (eventId: number, tagId: number) =>
+        api.post<EventTag>(`/events/${eventId}/tags/${tagId}`, { event_id: eventId, tag_id: tagId }),
+    removeTagFromEvent: (eventId: number, tagId: number) =>
+        api.delete(`/events/${eventId}/tags/${tagId}`),
+    getEventTags: (eventId: number) =>
+        api.get<{ event_tags: EventTag[] }>(`/events/${eventId}/tags`),
+    getEventsByTag: (tagId: number) =>
+        api.get<{ events: EventTag[] }>(`/tags/${tagId}/events`),
 }; 
