@@ -14,7 +14,11 @@ class EventDao(BaseDAO):
     @classmethod
     async def find_all_with_tags(cls, **filter_by):
         async with async_session_maker() as session:
-            query = select(cls.model).filter_by(**filter_by)
+            query = (
+                select(cls.model)
+                .filter_by(**filter_by)
+                .order_by(cls.model.start_time.asc())  # Сортировка по времени начала
+            )
             if hasattr(cls.model, 'tags'):
                 query = query.options(joinedload(cls.model.tags))
             result = await session.execute(query)

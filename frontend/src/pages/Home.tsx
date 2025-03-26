@@ -27,6 +27,7 @@ const Home = () => {
     const upcomingEvents = events?.filter(
         (event) => new Date(event.start_time) > now
     ) || [];
+
     const pastEvents = events?.filter(
         (event) => new Date(event.start_time) <= now
     ) || [];
