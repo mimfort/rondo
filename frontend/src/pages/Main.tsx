@@ -118,9 +118,7 @@ const Main = () => {
                 <motion.div
                     className="absolute inset-0 w-full h-full opacity-30"
                     style={{
-                        backgroundImage: 'url(/hero-bg.jpg)',
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
+                        background: 'linear-gradient(135deg, #1a365d 0%, #2d3748 100%)',
                     }}
                     initial={{ scale: 1.2 }}
                     animate={{ scale: 1 }}
