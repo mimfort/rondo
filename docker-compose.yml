@@ -35,7 +35,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "80:80"
+      - "8181:80"
     environment:
       - VITE_API_URL=http://api.rondo.svnoready.ru
     depends_on:
@@ -45,8 +45,6 @@ services:
 
   db:
     image: postgres:16-alpine
-    ports:
-      - "5432:5432"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
