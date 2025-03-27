@@ -48,5 +48,9 @@ export default defineConfig({
         alias: {
             '@': '/src'
         }
-    }
+    },
+    define: {
+        'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || 'http://api.rondo.svnoready.ru')
+    },
+    envDir: '.'
 }); 

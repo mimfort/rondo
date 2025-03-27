@@ -117,9 +117,6 @@ const Main = () => {
                 {/* Анимированный фон */}
                 <motion.div
                     className="absolute inset-0 w-full h-full opacity-30"
-                    style={{
-                        background: 'linear-gradient(135deg, #1a365d 0%, #2d3748 100%)',
-                    }}
                     initial={{ scale: 1.2 }}
                     animate={{ scale: 1 }}
                     transition={{ duration: 20, repeat: Infinity, repeatType: "reverse" }}

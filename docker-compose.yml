@@ -37,7 +37,7 @@ services:
     ports:
       - "80:80"
     environment:
-      - VITE_API_URL=http://localhost:8000
+      - VITE_API_URL=http://api.rondo.svnoready.ru
     depends_on:
       - backend
     networks:

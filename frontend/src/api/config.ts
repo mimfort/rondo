@@ -1,8 +1,9 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-// Используем переменную окружения или значение по умолчанию
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// Используем переменную окружения
+export const API_URL = import.meta.env.VITE_API_URL;
+console.log('API_URL:', API_URL); // Для отладки
 
 const api = axios.create({
     baseURL: API_URL,
