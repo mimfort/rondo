@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { eventService } from '../api/services';
 import type { Event } from '../types';
-import { API_URL } from '../api/config';
+import { getImageUrl } from '../api/config';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const Home = () => {
@@ -69,7 +69,7 @@ const Home = () => {
                         {event.media_url && (
                             <div className="relative h-48 overflow-hidden">
                                 <motion.img
-                                    src={`${API_URL}${event.media_url}`}
+                                    src={getImageUrl(event.media_url) || ''}
                                     alt={event.title}
                                     className="w-full h-full object-cover"
                                     initial={{ scale: 1.2 }}

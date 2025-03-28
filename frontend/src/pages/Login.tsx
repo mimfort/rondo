@@ -5,6 +5,11 @@ import { useNavigate } from 'react-router-dom';
 import { authService } from '../api/services';
 import type { LoginForm } from '../types';
 import AuthForm from '../components/AuthForm';
+import { AxiosError } from 'axios';
+
+interface ErrorResponse {
+    detail: string;
+}
 
 const Login = () => {
     const navigate = useNavigate();
@@ -39,6 +44,18 @@ const Login = () => {
         loginMutation.mutate(data);
     };
 
+    // Определяем сообщение об ошибке
+    const getErrorMessage = () => {
+        if (!loginMutation.isError) return undefined;
+
+        const error = loginMutation.error as AxiosError<ErrorResponse>;
+        const errorDetail = error.response?.data?.detail;
+        if (errorDetail === "Подтвердите свою почту") {
+            return "Пожалуйста, подтвердите свою почту перед входом";
+        }
+        return "Неверный email или пароль";
+    };
+
     return (
         <AuthForm
             title="Войти в аккаунт"
@@ -47,7 +64,7 @@ const Login = () => {
             linkTo="/register"
             onSubmit={handleSubmit(onSubmit)}
             isLoading={loginMutation.isPending}
-            error={loginMutation.isError ? 'Неверный email или пароль' : undefined}
+            error={getErrorMessage()}
         >
             <div className="space-y-5">
                 <div>

@@ -1,10 +1,6 @@
 import api from './config';
 import type { Event, LoginForm, RegisterForm, EventForm, Registration, User, Tag, TagCreate, EventTag } from '../types';
 import axios from 'axios';
-import { API_URL } from './config';
-
-// Получаем базовый URL из конфигурации axios
-const BASE_URL = api.defaults.baseURL || '';
 
 export const authService = {
     login: (data: LoginForm) => api.post('/users/auth', data),

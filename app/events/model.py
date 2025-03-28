@@ -1,8 +1,8 @@
 # model.py (Event)
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import List, Optional
 
-from sqlalchemy import DateTime, String, Text, func, select, Boolean, Integer
+from sqlalchemy import DateTime, String, Text, func, select, Boolean, Integer, text
 from sqlalchemy.orm import Mapped, column_property, mapped_column, relationship
 
 from app.additional_registration.model import Registration_additional
@@ -24,17 +24,17 @@ class Event(Base):
     additional_members: Mapped[int] = mapped_column(Integer, default=0)
     location: Mapped[str] = mapped_column(String(255), nullable=True)
     start_time: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
+        DateTime(timezone=True), nullable=False, server_default=text('CURRENT_TIMESTAMP AT TIME ZONE \'UTC\'')
     )
     end_time: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, server_default=func.now()
+        DateTime(timezone=True), nullable=False, server_default=text('CURRENT_TIMESTAMP AT TIME ZONE \'UTC\'')
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
+        DateTime(timezone=True), nullable=False, server_default=text('CURRENT_TIMESTAMP AT TIME ZONE \'UTC\''), onupdate=text('CURRENT_TIMESTAMP AT TIME ZONE \'UTC\'')
     )
 
     # Relationships

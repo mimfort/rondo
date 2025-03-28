@@ -28,3 +28,11 @@ ExpiredTokenException = HTTPException(
 UserIsNotPresentException = HTTPException(
     status_code=status.HTTP_400_BAD_REQUEST, detail="Пользователь не найден"
 )
+
+UserIsNotActiveException = HTTPException(
+    status_code=status.HTTP_400_BAD_REQUEST, detail="Подтвердите свою почту"
+)
+
+InvalidTokenException = HTTPException(
+    status_code=status.HTTP_400_BAD_REQUEST, detail="Неправильный токен или он истек"
+)

@@ -1,16 +1,24 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-// Используем переменную окружения
-export const API_URL = import.meta.env.VITE_API_URL;
+// В режиме разработки используем прямой URL бэкенда
+const isDev = import.meta.env.DEV;
+export const API_URL = isDev ? 'http://localhost:8000' : import.meta.env.VITE_API_URL;
 console.log('API_URL:', API_URL); // Для отладки
+
+// Функция для формирования URL изображений
+export const getImageUrl = (path: string) => {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    return `${API_URL}${path}`;
+};
 
 const api = axios.create({
     baseURL: API_URL,
     headers: {
         'Content-Type': 'application/json',
     },
-    withCredentials: true,
+    withCredentials: true
 });
 
 // Обработка ошибок аутентификации
@@ -30,6 +38,15 @@ api.interceptors.response.use(
             });
             // Перенаправляем на страницу входа
             window.location.href = '/login';
+            return Promise.reject(error);
+        }
+
+        // Проверяем ошибку подтверждения почты
+        if (error.response?.data?.detail === "Подтвердите свою почту") {
+            toast.error('Пожалуйста, подтвердите свою почту перед входом', {
+                duration: 5000,
+                position: 'top-center'
+            });
             return Promise.reject(error);
         }
 

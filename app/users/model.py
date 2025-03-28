@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 from pydantic import EmailStr
-from sqlalchemy import String, func
+from sqlalchemy import String, func, text, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -21,7 +21,7 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(255), unique=True)
     hashed_password: Mapped[str] = mapped_column(String(255))
     avatar_url: Mapped[str] = mapped_column(String(2048), nullable=True)
-    is_active: Mapped[bool] = mapped_column(default=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, server_default=text("false"), default=False)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     admin_status: Mapped[str] = mapped_column(
         String(255), nullable=False, server_default="user"

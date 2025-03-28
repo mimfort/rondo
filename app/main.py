@@ -36,7 +36,7 @@ app = FastAPI(lifespan=lifespan)
 # Настройка CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://rondo.scvnotready.ru", "http://localhost:80"],  # Разрешаем запросы с фронтенда
+    allow_origins=["http://rondo.scvnotready.ru", "http://localhost:80", "http://localhost:5173"],  # Разрешаем запросы с фронтенда
     allow_credentials=True,
     allow_methods=["*"],  # Разрешаем все методы
     allow_headers=["*"],  # Разрешаем все заголовки

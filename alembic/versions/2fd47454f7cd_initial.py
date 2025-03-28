@@ -44,7 +44,7 @@ def upgrade() -> None:
     sa.Column('username', sa.String(length=255), nullable=False),
     sa.Column('hashed_password', sa.String(length=255), nullable=False),
     sa.Column('avatar_url', sa.String(length=2048), nullable=True),
-    sa.Column('is_active', sa.Boolean(), nullable=False),
+    sa.Column('is_active', sa.Boolean(), server_default=sa.text('false'), nullable=True),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.Column('admin_status', sa.String(length=255), server_default='user', nullable=False),
     sa.PrimaryKeyConstraint('id'),

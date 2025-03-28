@@ -6,7 +6,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./uploads:/app/uploads
+      - uploads_data:/app/uploads
     env_file:
       - .env-non-dev
     depends_on:
@@ -21,7 +21,7 @@ services:
       dockerfile: backend.Dockerfile
     command: celery -A app.tasks.celery_app worker --loglevel=info
     volumes:
-      - ./uploads:/app/uploads
+      - uploads_data:/app/uploads
     env_file:
       - .env-non-dev
     depends_on:
@@ -45,10 +45,13 @@ services:
 
   db:
     image: postgres:16-alpine
+    ports:
+      - "5432:5432"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=rondo
+      - TZ=UTC
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -66,6 +69,7 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  uploads_data:
 
 
 networks:

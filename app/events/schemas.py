@@ -1,5 +1,5 @@
-from datetime import datetime
-from pydantic import BaseModel, Field
+from datetime import datetime, UTC
+from pydantic import BaseModel, Field, field_validator
 from typing import List
 
 
@@ -12,6 +12,13 @@ class EventBase(BaseModel):
     start_time: datetime
     end_time: datetime | None
     count_members: int
+
+    @field_validator('start_time', 'end_time')
+    def ensure_utc(cls, v):
+        if v is not None and v.tzinfo is None:
+            # Если время без часового пояса, считаем его UTC
+            return v.replace(tzinfo=UTC)
+        return v
 
 
 class EventCreate(EventBase):

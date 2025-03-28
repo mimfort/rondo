@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, Response
 from fastapi.responses import JSONResponse
 
-from app.exceptions import UserAlreadyExist, UsernameAlreadyExist
-from app.tasks.tasks import send_login_email, send_welcome_email
-from app.users.auth import auth_user, create_access_token, get_password_hash
+from app.exceptions import InvalidTokenException, UserAlreadyExist, UserIsNotActiveException, UserIsNotPresentException, UsernameAlreadyExist
+from app.tasks.tasks import send_confirm_email, send_login_email, send_welcome_email
+from app.users.auth import auth_user, confirm_token, create_access_token, get_password_hash
 from app.users.dao import UsersDao
 from app.users.dependencies import get_current_user
 from app.users.model import User
@@ -37,6 +37,7 @@ async def registration(user_data: RegistrationModel):
         username=user_data.username,
         email=user_data.email,
         hashed_password=get_password_hash(user_data.password),
+        is_active=False
     )
     if new_user:
         send_welcome_email.delay(to=user_data.email, username=user_data.username)
@@ -48,6 +49,11 @@ async def registration(user_data: RegistrationModel):
 @router.post("/auth")
 async def login(response: Response, auth_model: UserAuthResponse):
     user = await auth_user(email=auth_model.email, password=auth_model.password)
+    print(user.is_active)
+    print(type(user.is_active))
+    if user.is_active==False:
+        send_confirm_email.delay(to=user.email, username=user.username)
+        raise UserIsNotActiveException
     if user:
         cookie = create_access_token({"sub": str(user.id)})
 
@@ -70,4 +76,18 @@ async def about_me(response: Response, current_user: User = Depends(get_current_
         "avatar_url": current_user.avatar_url,
         "created_at": current_user.created_at,
         "admin_status": current_user.admin_status,
+        "is_active": current_user.is_active,
     }
+
+@router.get("/confirm/{token}")
+async def confirm_email(token: str):
+    email = confirm_token(token)
+    if not email:
+        raise InvalidTokenException
+
+    user = await UsersDao.find_one_or_none(email=email)
+    if not user:
+        raise UserIsNotPresentException
+
+    await UsersDao.update(id=user.id, field="is_active", data=True)
+    return {"msg": "Почта подтверждена"}

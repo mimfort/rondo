@@ -7,7 +7,7 @@ from pydantic import EmailStr
 from app.config import settings
 from app.exceptions import IncorrectEMailOrPasswordException
 from app.users.dao import UsersDao
-
+from itsdangerous import URLSafeTimedSerializer
 pwd_context = PasswordHasher()
 
 
@@ -36,3 +36,18 @@ async def auth_user(email: EmailStr, password: str):
             return user
     except Exception:
         raise IncorrectEMailOrPasswordException
+    
+
+SECRET_KEY = settings.SECRET_KEY
+serializer = URLSafeTimedSerializer(SECRET_KEY)
+
+def generate_confirmation_token(email: str) -> str:
+    return serializer.dumps(email, salt="email-confirm")
+
+
+def confirm_token(token: str, expiration: int = 3600) -> str | None:
+    try:
+        email = serializer.loads(token, salt="email-confirm", max_age=expiration)
+        return email
+    except Exception:
+        return None
