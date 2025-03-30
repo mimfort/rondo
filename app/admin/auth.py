@@ -1,9 +1,15 @@
+from enum import Enum
 from sqladmin.authentication import AuthenticationBackend
 from starlette.requests import Request
 
 from app.config import settings
 from app.users.auth import auth_user, create_access_token
 from app.users.dependencies import get_current_user
+
+
+# class UserRole(str, Enum):
+#     admin = "admin"
+#     user = "user"
 
 
 class AdminAuth(AuthenticationBackend):

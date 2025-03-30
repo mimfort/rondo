@@ -6,7 +6,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - uploads_data:/app/uploads
+      - ./uploads:/rondo/uploads
     env_file:
       - .env-non-dev
     depends_on:
@@ -21,7 +21,7 @@ services:
       dockerfile: backend.Dockerfile
     command: celery -A app.tasks.celery_app worker --loglevel=info
     volumes:
-      - uploads_data:/app/uploads
+      - ./uploads:/uploads
     env_file:
       - .env-non-dev
     depends_on:
@@ -69,8 +69,6 @@ services:
 volumes:
   postgres_data:
   redis_data:
-  uploads_data:
-
 
 networks:
   app-network:

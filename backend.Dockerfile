@@ -16,10 +16,6 @@ COPY .env-non-dev .env
 COPY app/ app/
 COPY alembic.ini .
 COPY alembic/ alembic/
-COPY main.py .
-
-# Создание директории для загрузок
-RUN mkdir -p uploads && chmod 777 uploads
 
 # Установка переменных окружения для production
 ENV ENVIRONMENT=production
