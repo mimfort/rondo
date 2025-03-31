@@ -2,12 +2,12 @@ from fastapi import APIRouter, Depends, Response
 from fastapi.responses import JSONResponse
 
 from app.exceptions import InvalidTokenException, UserAlreadyExist, UserIsNotActiveException, UserIsNotPresentException, UsernameAlreadyExist
-from app.tasks.tasks import send_confirm_email, send_login_email, send_welcome_email
-from app.users.auth import auth_user, confirm_token, create_access_token, get_password_hash
+from app.tasks.tasks import send_confirm_email, send_forgot_password_email, send_login_email, send_welcome_email
+from app.users.auth import auth_user, confirm_reset_token, confirm_token, create_access_token, generate_reset_token, get_password_hash
 from app.users.dao import UsersDao
 from app.users.dependencies import get_current_user
 from app.users.model import User
-from app.users.schemas import RegistrationModel, UserAuthResponse, UserCreateResponse
+from app.users.schemas import RegistrationModel, ResetPassword, ResetRequest, UserAuthResponse, UserCreateResponse
 
 router = APIRouter(prefix="/users", tags=["Пользователи"])
 
@@ -91,3 +91,24 @@ async def confirm_email(token: str):
 
     await UsersDao.update(id=user.id, field="is_active", data=True)
     return {"msg": "Почта подтверждена"}
+
+
+@router.post("/forgot_password")
+async def forgot_password(reset_request: ResetRequest):
+    user = await UsersDao.find_one_or_none(email=reset_request.email)
+    if not user:
+        raise UserIsNotPresentException
+    token = generate_reset_token(user.email)
+    send_forgot_password_email.delay(to=user.email, username=user.username, token=token)
+    return {"msg": "Письмо с инструкциями по сбросу пароля отправлено"}
+
+@router.get("/reset-password")
+async def reset_password(reset_password: ResetPassword):
+    email = confirm_reset_token(reset_password.token)
+    if not email:
+        raise InvalidTokenException
+    user = await UsersDao.find_one_or_none(email=email)
+    if not user:
+        raise UserIsNotPresentException
+    await UsersDao.update(id=user.id, field="hashed_password", data=get_password_hash(reset_password.new_password))
+    return {"msg": "Пароль сброшен"}

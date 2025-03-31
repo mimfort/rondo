@@ -8,6 +8,7 @@ from app.config import settings
 from app.exceptions import IncorrectEMailOrPasswordException
 from app.users.dao import UsersDao
 from itsdangerous import URLSafeTimedSerializer
+import secrets
 pwd_context = PasswordHasher()
 
 
@@ -48,6 +49,16 @@ def generate_confirmation_token(email: str) -> str:
 def confirm_token(token: str, expiration: int = 3600) -> str | None:
     try:
         email = serializer.loads(token, salt="email-confirm", max_age=expiration)
+        return email
+    except Exception:
+        return None
+    
+def generate_reset_token(email: str) -> str:
+    return serializer.dumps(email, salt="forgot-password")
+
+def confirm_reset_token(token: str, expiration: int = 3600) -> str | None:
+    try:
+        email = serializer.loads(token, salt="forgot-password", max_age=expiration)
         return email
     except Exception:
         return None

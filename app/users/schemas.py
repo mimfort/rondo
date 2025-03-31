@@ -21,3 +21,10 @@ class UserCreateResponse(BaseModel):
 class UserAuthResponse(BaseModel):
     email: EmailStr
     password: str
+
+class ResetRequest(BaseModel):
+    email: EmailStr
+
+class ResetPassword(BaseModel):
+    token: str
+    new_password: str
