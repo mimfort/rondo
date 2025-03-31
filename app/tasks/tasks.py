@@ -10,7 +10,8 @@ from app.users.auth import generate_confirmation_token
 
 logger = logging.getLogger(__name__)
 
-link = "http://api.rondo.scvnotready.ru"
+link_api = "http://api.rondo.scvnotready.ru"
+link_front = "http://rondo.scvnotready.ru"
 
 @celery.task(name="send_welcome_email")
 def send_welcome_email(to: str, username: str):
@@ -156,7 +157,7 @@ def send_confirm_email(
         msg["To"] = to
         msg["Subject"] = "Подтвердите свою почту"
         token = generate_confirmation_token(to)
-        confirm_url = f"{link}/users/confirm/{token}"
+        confirm_url = f"{link_api}/users/confirm/{token}"
         body = f"""
         <h1>Привет, {username}!</h1>  
         <p>Подтвердите свою почту, перейдя по ссылке: {confirm_url}</p>  
@@ -187,7 +188,7 @@ def send_forgot_password_email(
         msg["From"] = email_from
         msg["To"] = to
         msg["Subject"] = "Сброс пароля"
-        confirm_url = f"{link}/reset-password?token={token}"
+        confirm_url = f"{link_front}/reset-password?token={token}"
         body = f"""
         <h1>Привет, {username}!</h1>  
         <p>Сброс пароля, перейдите по ссылке: {confirm_url}</p>  

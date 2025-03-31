@@ -1,7 +1,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../api/services';
 import type { LoginForm } from '../types';
 import AuthForm from '../components/AuthForm';
@@ -125,6 +125,14 @@ const Login = () => {
                             {errors.password.message}
                         </p>
                     )}
+                    <div className="mt-2 text-right">
+                        <Link
+                            to="/forgot-password"
+                            className="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+                        >
+                            Забыли пароль?
+                        </Link>
+                    </div>
                 </div>
             </div>
         </AuthForm>

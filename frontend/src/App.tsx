@@ -18,6 +18,8 @@ import EventDetails from './pages/EventDetails';
 import Profile from './pages/Profile';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import { AnimatePresence } from 'framer-motion';
 import { ThemeProvider } from './context/ThemeContext';
@@ -63,6 +65,8 @@ const router = createBrowserRouter(
             } />
             <Route path="login" element={<PageTransition><Login /></PageTransition>} />
             <Route path="register" element={<PageTransition><Register /></PageTransition>} />
+            <Route path="forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
+            <Route path="reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
             <Route path="*" element={<Navigate to="/" />} />
         </Route>
     ),

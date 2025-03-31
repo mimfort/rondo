@@ -25,6 +25,12 @@ export const authService = {
         }
     },
     checkAuth: () => api.get('/users/me'),
+    forgotPassword: async (data: { email: string }) => {
+        return await api.post('/users/forgot_password', data);
+    },
+    resetPassword: async (data: { token: string; new_password: string }) => {
+        return await api.post('/users/reset-password', data);
+    },
 };
 
 export const eventService = {

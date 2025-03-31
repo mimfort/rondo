@@ -102,7 +102,7 @@ async def forgot_password(reset_request: ResetRequest):
     send_forgot_password_email.delay(to=user.email, username=user.username, token=token)
     return {"msg": "Письмо с инструкциями по сбросу пароля отправлено"}
 
-@router.get("/reset-password")
+@router.post("/reset-password")
 async def reset_password(reset_password: ResetPassword):
     email = confirm_reset_token(reset_password.token)
     if not email:

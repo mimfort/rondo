@@ -12,15 +12,30 @@ declare global {
 
 const YANDEX_MAPS_API_KEY = import.meta.env.VITE_YANDEX_MAPS_API_KEY;
 
+// Функция для определения мобильного устройства
+const isMobile = () => {
+    return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+};
+
 const Main = () => {
     const [mapError, setMapError] = useState<string | null>(null);
-    const { scrollY } = useScroll();
+    const [isMobileDevice] = useState(isMobile());
+    const { scrollY } = useScroll({
+        layoutEffect: false
+    });
 
-    // Параллакс эффекты
-    const heroOpacity = useTransform(scrollY, [0, 300], [1, 0]);
-    const heroY = useTransform(scrollY, [0, 300], [0, 150]);
-    const featuresY = useTransform(scrollY, [300, 600], [50, 0]);
-    const featuresOpacity = useTransform(scrollY, [300, 400], [0, 1]);
+    // Упрощенные эффекты для мобильных устройств
+    const heroOpacity = useTransform(scrollY,
+        [0, 200],
+        [1, isMobileDevice ? 0.3 : 0]
+    );
+
+    const heroY = useTransform(scrollY,
+        [0, 200],
+        [0, isMobileDevice ? 0 : 30]
+    );
+    const featuresY = useTransform(scrollY, [200, 400], [30, 0]);
+    const featuresOpacity = useTransform(scrollY, [200, 300], [0, 1]);
 
     useEffect(() => {
         const mapContainer = document.getElementById('map');
@@ -112,116 +127,76 @@ const Main = () => {
             {/* Hero Section с параллаксом */}
             <motion.div
                 className="relative h-[600px] flex items-center justify-center overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
-                style={{ opacity: heroOpacity, y: heroY }}
+                style={isMobileDevice ? undefined : { opacity: heroOpacity, y: heroY }}
+                transition={{ type: "tween", duration: 0.1 }}
             >
-                {/* Анимированный фон */}
-                <motion.div
-                    className="absolute inset-0 w-full h-full opacity-30"
-                    initial={{ scale: 1.2 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 20, repeat: Infinity, repeatType: "reverse" }}
-                />
+                {/* Анимированный фон - отключаем на мобильных */}
+                {!isMobileDevice && (
+                    <motion.div
+                        className="absolute inset-0 w-full h-full opacity-30"
+                        initial={{ scale: 1.1 }}
+                        animate={{ scale: 1 }}
+                        transition={{ duration: 8, repeat: Infinity, repeatType: "reverse", ease: "linear" }}
+                    />
+                )}
 
-                {/* Декоративные элементы */}
-                <motion.div
+                {/* Декоративные элементы - статичные на мобильных */}
+                <div
                     className="absolute inset-0 opacity-40"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 0.4 }}
-                    transition={{ duration: 2 }}
                 >
                     <div className="absolute top-10 left-10 w-32 h-32 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-3xl" />
                     <div className="absolute bottom-10 right-10 w-32 h-32 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-3xl" />
                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full blur-3xl opacity-30" />
-                </motion.div>
+                </div>
 
                 {/* Основной контент */}
                 <div className="relative z-10 text-center">
-                    <motion.div
-                        className="flex flex-col items-center px-6"
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8 }}
-                    >
+                    <div className="flex flex-col items-center px-6">
                         <motion.div
                             className="mb-8 relative"
-                            whileHover={{ scale: 1.05 }}
-                            transition={{ type: "spring", stiffness: 300 }}
+                            whileHover={isMobileDevice ? undefined : { scale: 1.02 }}
+                            transition={{ type: "tween", duration: 0.2 }}
                         >
-                            <motion.h1
-                                className="text-8xl font-black tracking-tighter mb-2"
-                                style={{
-                                    background: 'linear-gradient(to right, #fff, #e0e7ff)',
-                                    WebkitBackgroundClip: 'text',
-                                    WebkitTextFillColor: 'transparent',
-                                }}
-                                initial={{ opacity: 0, y: -20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.6 }}
+                            <h1
+                                className="text-8xl font-black tracking-tighter mb-2 bg-clip-text text-transparent bg-gradient-to-r from-white to-[#e0e7ff]"
                             >
                                 СОТЫ
-                            </motion.h1>
-                            <motion.div
-                                className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-500 blur-xl opacity-30"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 0.3 }}
-                                transition={{ duration: 1 }}
-                            />
+                            </h1>
                         </motion.div>
 
-                        <motion.p
-                            className="text-2xl font-medium text-gray-200 mb-12 max-w-2xl"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 0.8, delay: 0.2 }}
-                        >
+                        <p className="text-2xl font-medium text-gray-200 mb-12 max-w-2xl">
                             Молодежное пространство в Новом Девяткино
-                        </motion.p>
+                        </p>
 
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8, delay: 0.4 }}
+                        <Link
+                            to="/events"
+                            className="group relative inline-flex items-center gap-2 px-8 py-4 bg-white/10 backdrop-blur-sm rounded-full text-white font-medium overflow-hidden transition-all duration-300 hover:bg-white/20"
                         >
-                            <Link
-                                to="/events"
-                                className="group relative inline-flex items-center gap-2 px-8 py-4 bg-white/10 backdrop-blur-sm rounded-full text-white font-medium overflow-hidden transition-all duration-300 hover:bg-white/20"
+                            <span>Смотреть события</span>
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
                             >
-                                <motion.span
-                                    initial={{ x: 0 }}
-                                    whileHover={{ x: -4 }}
-                                    transition={{ type: "spring", stiffness: 400 }}
-                                >
-                                    Смотреть события
-                                </motion.span>
-                                <motion.svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M13 7l5 5m0 0l-5 5m5-5H6"
-                                    />
-                                </motion.svg>
-                                <motion.div
-                                    className="absolute inset-0 -z-10 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                    initial={{ opacity: 0 }}
-                                    whileHover={{ opacity: 1 }}
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M13 7l5 5m0 0l-5 5m5-5H6"
                                 />
-                            </Link>
-                        </motion.div>
-                    </motion.div>
+                            </svg>
+                        </Link>
+                    </div>
                 </div>
             </motion.div>
 
             {/* Features Section с параллаксом */}
             <motion.div
-                className="py-20 px-4"
+                className="py-20 px-4 transform-gpu"
                 style={{ opacity: featuresOpacity, y: featuresY }}
+                transition={{ type: "tween", duration: 0.1 }}
             >
                 <div className="max-w-7xl mx-auto">
                     <motion.h2
@@ -351,6 +326,40 @@ const Main = () => {
                     </div>
                 </div>
             </section>
+
+            {/* Developer Contact Section */}
+            <motion.div
+                className="py-16 bg-gray-50 dark:bg-gray-900"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+            >
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center">
+                        <a
+                            href="https://t.me/neloh074"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block group"
+                        >
+                            <div className="flex flex-col items-center space-y-4">
+                                <div className="relative w-16 h-16 transition-transform duration-300 group-hover:scale-110">
+                                    <img
+                                        src={TelegramIcon}
+                                        alt="Telegram"
+                                        className="w-full h-full object-contain dark:invert dark:brightness-200 transition-all duration-200"
+                                    />
+                                </div>
+                                <div className="text-gray-600 dark:text-gray-400">
+                                    <p className="text-sm font-medium">По вопросам работы сайта</p>
+                                    <p className="text-lg font-semibold">@neloh074</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </motion.div>
         </div>
     );
 };
