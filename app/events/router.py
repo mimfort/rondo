@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from typing import List
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
+from pytz import timezone
 
 from app.users.dao import UsersDao
 from app.events.dao import EventDao
@@ -104,8 +105,16 @@ async def create_event(
 
     # Преобразуем строки в datetime
     try:
-        start_time_dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
-        end_time_dt = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
+        # Добавляем московский часовой пояс к времени
+        moscow_tz = timezone('Europe/Moscow')
+        start_time_dt = datetime.fromisoformat(start_time)
+        end_time_dt = datetime.fromisoformat(end_time)
+        
+        # Если время без часового пояса, добавляем московский
+        if start_time_dt.tzinfo is None:
+            start_time_dt = moscow_tz.localize(start_time_dt)
+        if end_time_dt and end_time_dt.tzinfo is None:
+            end_time_dt = moscow_tz.localize(end_time_dt)
     except ValueError as e:
         raise HTTPException(
             status_code=400,

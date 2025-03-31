@@ -1,6 +1,8 @@
 from datetime import datetime, UTC
 from pydantic import BaseModel, Field, field_validator
 from typing import List
+from app.tags.schemas import TagResponse
+from pytz import timezone
 
 
 class EventBase(BaseModel):
@@ -13,12 +15,13 @@ class EventBase(BaseModel):
     end_time: datetime | None
     count_members: int
 
-    @field_validator('start_time', 'end_time')
-    def ensure_utc(cls, v):
-        if v is not None and v.tzinfo is None:
-            # Если время без часового пояса, считаем его UTC
-            return v.replace(tzinfo=UTC)
-        return v
+    # @field_validator('start_time', 'end_time')
+    # def ensure_moscow_timezone(cls, v):
+    #     if v is not None and v.tzinfo is None:
+    #         # Если время без часового пояса, считаем его московским
+    #         moscow_tz = timezone('Europe/Moscow')
+    #         return moscow_tz.localize(v)
+    #     return v
 
 
 class EventCreate(EventBase):

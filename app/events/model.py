@@ -24,10 +24,14 @@ class Event(Base):
     additional_members: Mapped[int] = mapped_column(Integer, default=0)
     location: Mapped[str] = mapped_column(String(255), nullable=True)
     start_time: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=text('CURRENT_TIMESTAMP AT TIME ZONE \'UTC\'')
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=text("TIMEZONE('Europe/Moscow', CURRENT_TIMESTAMP)")
     )
+    
     end_time: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
+        DateTime(timezone=True),
+        nullable=True
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(
