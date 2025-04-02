@@ -2,6 +2,8 @@ import api from './config';
 import type { Event, LoginForm, RegisterForm, EventForm, Registration, User, Tag, TagCreate, EventTag } from '../types';
 import axios from 'axios';
 
+const BASE_URL = '/api';
+
 export const authService = {
     login: (data: LoginForm) => api.post('/users/auth', data),
     register: (data: RegisterForm) => api.post('/users/registration', data),
@@ -31,6 +33,7 @@ export const authService = {
     resetPassword: async (data: { token: string; new_password: string }) => {
         return await api.post('/users/reset-password', data);
     },
+    updateProfile: (data: { first_name: string; last_name: string }) => api.post('/users/update-profile', data),
 };
 
 export const eventService = {
@@ -106,11 +109,12 @@ export const eventService = {
     sendNotification: async (eventId: number) => {
         const response = await api.post(`/events/notification/${eventId}`);
         return response.data;
-    }
+    },
+    getEvents: () => api.get<Event[]>('/events'),
+    registerForEvent: (eventId: number) => api.post<Registration>(`/users/registration/${eventId}`),
 };
 
 export const registrationService = {
-    registerForEvent: (eventId: number) => api.post<Registration>(`/users/registration/${eventId}`),
     getUserRegistrations: () => api.get<Registration[]>('/users/registration/my_registration/info'),
     cancelRegistration: (eventId: number) => api.post(`/users/registration/disregistration/${eventId}`),
 };

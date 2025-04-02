@@ -37,7 +37,7 @@ const EventDetails = () => {
     const isRegistered = userRegistrations?.some(reg => reg.event_id === eventId);
 
     const registerMutation = useMutation({
-        mutationFn: () => registrationService.registerForEvent(eventId),
+        mutationFn: () => eventService.registerForEvent(eventId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['event', eventId] });
             queryClient.invalidateQueries({ queryKey: ['userRegistrations'] });

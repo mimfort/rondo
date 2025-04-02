@@ -28,3 +28,7 @@ class ResetRequest(BaseModel):
 class ResetPassword(BaseModel):
     token: str
     new_password: str
+
+class UpdateProfile(BaseModel):
+    first_name: str
+    last_name: str

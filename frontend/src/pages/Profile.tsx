@@ -1,23 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { authService, registrationService, eventService } from '../api/services';
-import type { Registration, RegistrationWithEvent } from '../types';
+import type { User, Registration, RegistrationWithEvent } from '../types';
 import { toast } from 'react-hot-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import LoadingSpinner from '../components/LoadingSpinner';
-
-interface User {
-    id: number;
-    username: string;
-    email: string;
-    avatar_url: string | null;
-    created_at: string;
-}
+import { api } from '../api/api';
 
 const Profile = () => {
     const [activeTab, setActiveTab] = useState<'profile' | 'registrations'>('profile');
+    const [isEditing, setIsEditing] = useState(false);
+    const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: ''
+    });
 
     const { data: user, isLoading: isLoadingUser } = useQuery<User>({
         queryKey: ['user'],
@@ -27,7 +24,7 @@ const Profile = () => {
         },
     });
 
-    const { data: registrations, isLoading: isLoadingRegistrations, error } = useQuery<RegistrationWithEvent[]>({
+    const { data: registrations, isLoading: isLoadingRegistrations } = useQuery<RegistrationWithEvent[]>({
         queryKey: ['userRegistrations'],
         queryFn: async () => {
             const response = await registrationService.getUserRegistrations();
@@ -46,6 +43,20 @@ const Profile = () => {
 
     const queryClient = useQueryClient();
 
+    const updateProfileMutation = useMutation({
+        mutationFn: async (data: { first_name: string; last_name: string }) => {
+            await authService.updateProfile(data);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['user'] });
+            toast.success('Профиль успешно обновлен');
+            setIsEditing(false);
+        },
+        onError: () => {
+            toast.error('Ошибка при обновлении профиля');
+        }
+    });
+
     const cancelRegistrationMutation = useMutation({
         mutationFn: async (eventId: number) => {
             await registrationService.cancelRegistration(eventId);
@@ -59,24 +70,27 @@ const Profile = () => {
         },
     });
 
+    const handleEditClick = () => {
+        setFormData({
+            firstName: user?.first_name || '',
+            lastName: user?.last_name || ''
+        });
+        setIsEditing(true);
+    };
+
+    const handleSave = async () => {
+        updateProfileMutation.mutate({
+            first_name: formData.firstName,
+            last_name: formData.lastName
+        });
+    };
+
     const handleCancelRegistration = (eventId: number) => {
         cancelRegistrationMutation.mutate(eventId);
     };
 
     if (isLoadingUser || isLoadingRegistrations) {
         return <LoadingSpinner />;
-    }
-
-    if (error) {
-        return (
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center py-8"
-            >
-                <p className="text-red-600">Ошибка при загрузке регистраций</p>
-            </motion.div>
-        );
     }
 
     const tabVariants = {
@@ -177,23 +191,89 @@ const Profile = () => {
                                                 transition={{ delay: 0.2 }}
                                             />
                                         </div>
-                                        <div>
-                                            <motion.h2
-                                                className="text-2xl font-bold text-gray-900 dark:text-white"
-                                                initial={{ opacity: 0, x: -20 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: 0.2 }}
-                                            >
-                                                {user?.username}
-                                            </motion.h2>
-                                            <motion.p
-                                                className="text-gray-500 dark:text-gray-400"
-                                                initial={{ opacity: 0, x: -20 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: 0.3 }}
-                                            >
-                                                {user?.email}
-                                            </motion.p>
+                                        <div className="flex-1">
+                                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                                                <div>
+                                                    <motion.h2
+                                                        className="text-2xl font-bold text-gray-900 dark:text-white"
+                                                        initial={{ opacity: 0, x: -20 }}
+                                                        animate={{ opacity: 1, x: 0 }}
+                                                        transition={{ delay: 0.2 }}
+                                                    >
+                                                        {user?.username}
+                                                    </motion.h2>
+                                                    <motion.p
+                                                        className="text-gray-500 dark:text-gray-400"
+                                                        initial={{ opacity: 0, x: -20 }}
+                                                        animate={{ opacity: 1, x: 0 }}
+                                                        transition={{ delay: 0.3 }}
+                                                    >
+                                                        {user?.email}
+                                                    </motion.p>
+                                                    {!isEditing ? (
+                                                        <>
+                                                            {(user?.first_name || user?.last_name) && (
+                                                                <motion.p
+                                                                    className="text-gray-600 dark:text-gray-300 mt-2"
+                                                                    initial={{ opacity: 0, x: -20 }}
+                                                                    animate={{ opacity: 1, x: 0 }}
+                                                                    transition={{ delay: 0.4 }}
+                                                                >
+                                                                    {[user.first_name, user.last_name].filter(Boolean).join(' ')}
+                                                                </motion.p>
+                                                            )}
+                                                        </>
+                                                    ) : (
+                                                        <div className="mt-2 space-y-2 max-w-[250px]">
+                                                            <input
+                                                                type="text"
+                                                                value={formData.firstName}
+                                                                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                                                                placeholder="Имя"
+                                                                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
+                                                            />
+                                                            <input
+                                                                type="text"
+                                                                value={formData.lastName}
+                                                                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                                                                placeholder="Фамилия"
+                                                                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
+                                                            />
+                                                            <div className="flex gap-2 mt-4">
+                                                                <motion.button
+                                                                    onClick={handleSave}
+                                                                    className="flex-1 text-sm px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200 whitespace-nowrap"
+                                                                    whileHover={{ scale: 1.05 }}
+                                                                    whileTap={{ scale: 0.95 }}
+                                                                >
+                                                                    Сохранить
+                                                                </motion.button>
+                                                                <motion.button
+                                                                    onClick={() => setIsEditing(false)}
+                                                                    className="flex-1 text-sm px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors duration-200 whitespace-nowrap"
+                                                                    whileHover={{ scale: 1.05 }}
+                                                                    whileTap={{ scale: 0.95 }}
+                                                                >
+                                                                    Отмена
+                                                                </motion.button>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                {!isEditing && (
+                                                    <motion.button
+                                                        onClick={handleEditClick}
+                                                        className="text-sm px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors duration-200 flex items-center gap-1 whitespace-nowrap self-start"
+                                                        whileHover={{ scale: 1.05 }}
+                                                        whileTap={{ scale: 0.95 }}
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                        </svg>
+                                                        <span className="hidden sm:inline">Редактировать</span>
+                                                    </motion.button>
+                                                )}
+                                            </div>
                                         </div>
                                     </motion.div>
 

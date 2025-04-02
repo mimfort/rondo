@@ -26,6 +26,8 @@ class User(Base):
     admin_status: Mapped[str] = mapped_column(
         String(255), nullable=False, server_default="user"
     )
+    first_name: Mapped[str] = mapped_column(String(255), nullable=True)
+    last_name: Mapped[str] = mapped_column(String(255), nullable=True)
 
     # Relationships
     registrations: Mapped[list["Registration"]] = relationship(back_populates="user")

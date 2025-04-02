@@ -7,7 +7,7 @@ from app.users.auth import auth_user, confirm_reset_token, confirm_token, create
 from app.users.dao import UsersDao
 from app.users.dependencies import get_current_user
 from app.users.model import User
-from app.users.schemas import RegistrationModel, ResetPassword, ResetRequest, UserAuthResponse, UserCreateResponse
+from app.users.schemas import RegistrationModel, ResetPassword, ResetRequest, UpdateProfile, UserAuthResponse, UserCreateResponse
 
 router = APIRouter(prefix="/users", tags=["Пользователи"])
 
@@ -77,6 +77,8 @@ async def about_me(response: Response, current_user: User = Depends(get_current_
         "created_at": current_user.created_at,
         "admin_status": current_user.admin_status,
         "is_active": current_user.is_active,
+        "first_name": current_user.first_name,
+        "last_name": current_user.last_name,
     }
 
 @router.get("/confirm/{token}")
@@ -112,3 +114,10 @@ async def reset_password(reset_password: ResetPassword):
         raise UserIsNotPresentException
     await UsersDao.update(id=user.id, field="hashed_password", data=get_password_hash(reset_password.new_password))
     return {"msg": "Пароль сброшен"}
+
+@router.post("/update-profile")
+async def update_profile(update_profile: UpdateProfile, current_user: User = Depends(get_current_user)):
+    await UsersDao.update(id=current_user.id, field="first_name", data=update_profile.first_name)
+    await UsersDao.update(id=current_user.id, field="last_name", data=update_profile.last_name)
+    return {"msg": "Профиль обновлен"}
+
