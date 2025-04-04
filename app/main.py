@@ -21,8 +21,8 @@ from app.registration.router import router as registration_router
 from app.users.router import router as users_router
 from app.event_tags.router import router as event_tags_router
 from app.tags.router import router as tags_router
-
-
+from app.coworking.router import router as coworking_router
+from app.coworking_reservation.router import router as coworking_reservation_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Создаем директорию для загрузки файлов при запуске приложения
@@ -59,3 +59,5 @@ app.include_router(registration_router)
 app.include_router(additional_reg_router)
 app.include_router(event_tags_router)
 app.include_router(tags_router)
+app.include_router(coworking_router)
+app.include_router(coworking_reservation_router)

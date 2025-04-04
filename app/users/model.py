@@ -11,7 +11,7 @@ from app.database import Base
 if TYPE_CHECKING:
     from app.additional_registration.model import Registration_additional
     from app.registration.model import Registration
-
+    from app.coworking_reservation.model import CoworkingReservation
 
 class User(Base):
     __tablename__ = "users"
@@ -34,6 +34,10 @@ class User(Base):
     registration_additional: Mapped[list["Registration_additional"]] = relationship(
         back_populates="user"
     )
+    coworking_reservations: Mapped[list["CoworkingReservation"]] = relationship(
+        back_populates="user", lazy="selectin", cascade="all, delete"
+    )
+
 
     def __str__(self):
         return f"Пользователь {self.username}"
