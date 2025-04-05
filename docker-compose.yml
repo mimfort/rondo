@@ -37,7 +37,7 @@ services:
     ports:
       - "8181:80"
     environment:
-      - VITE_API_URL=http://api.rondo.svnoready.ru
+      - VITE_API_URL=https://api.skk-rondo.ru
     depends_on:
       - backend
     networks:
@@ -69,6 +69,7 @@ services:
 volumes:
   postgres_data:
   redis_data:
+
 
 networks:
   app-network:

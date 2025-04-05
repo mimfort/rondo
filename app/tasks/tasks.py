@@ -10,8 +10,8 @@ from app.users.auth import generate_confirmation_token
 
 logger = logging.getLogger(__name__)
 
-link_api = "http://api.rondo.scvnotready.ru"
-link_front = "http://rondo.scvnotready.ru"
+link_api = "https://api.skk-rondo.ru"
+link_front = "https://skk-rondo.ru"
 
 @celery.task(name="send_welcome_email")
 def send_welcome_email(to: str, username: str):

@@ -58,7 +58,7 @@ export default defineConfig({
         }
     },
     define: {
-        'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || 'http://api.rondo.svnoready.ru')
+        'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || 'https://api.skk-rondo.ru')
     },
     envDir: '.'
 }); 

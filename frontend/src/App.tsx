@@ -21,6 +21,8 @@ import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminEvents from './pages/admin/AdminEvents';
+import AdminCoworking from './pages/admin/AdminCoworking';
 import { AnimatePresence } from 'framer-motion';
 import { ThemeProvider } from './context/ThemeContext';
 import Navbar from './components/Navbar';
@@ -29,6 +31,7 @@ import PageTransition from './components/PageTransition';
 import ErrorPage from './components/ErrorPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
+import Coworking from './pages/Coworking';
 
 const Layout = () => {
     return (
@@ -58,11 +61,15 @@ const router = createBrowserRouter(
                 </ProtectedRoute>
             } />
             <Route path="events/:id" element={<PageTransition><EventDetails /></PageTransition>} />
-            <Route path="admin-panel" element={
+            <Route path="coworking" element={<PageTransition><Coworking /></PageTransition>} />
+            <Route path="admin-panel/*" element={
                 <AdminRoute>
                     <PageTransition><AdminDashboard /></PageTransition>
                 </AdminRoute>
-            } />
+            }>
+                <Route path="events" element={<AdminEvents />} />
+                <Route path="coworking" element={<AdminCoworking />} />
+            </Route>
             <Route path="login" element={<PageTransition><Login /></PageTransition>} />
             <Route path="register" element={<PageTransition><Register /></PageTransition>} />
             <Route path="forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />

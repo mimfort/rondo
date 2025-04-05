@@ -1,5 +1,17 @@
 import api from './config';
-import type { Event, LoginForm, RegisterForm, EventForm, Registration, User, Tag, TagCreate, EventTag } from '../types';
+import type {
+    Event,
+    LoginForm,
+    RegisterForm,
+    EventForm,
+    Registration,
+    User,
+    Tag,
+    TagCreate,
+    EventTag,
+    Coworking,
+    CoworkingReservation
+} from '../types';
 import axios from 'axios';
 
 const BASE_URL = '/api';
@@ -141,4 +153,25 @@ export const tagService = {
         api.get<{ event_tags: EventTag[] }>(`/events/${eventId}/tags`),
     getEventsByTag: (tagId: number) =>
         api.get<{ events: EventTag[] }>(`/tags/${tagId}/events`),
+};
+
+export const coworkingService = {
+    getAllCoworking: () => api.get<{ items: Coworking[] }>('/coworking/get_all_coworking'),
+    getCoworkingById: (id: number) => api.get<Coworking>(`/coworking/${id}`),
+    createCoworking: (data: { name: string; description: string; is_available: boolean }) =>
+        api.post<Coworking>('/coworking/', data),
+    updateCoworking: (id: number, data: { name: string; description: string; is_available: boolean }) =>
+        api.put<Coworking>(`/coworking/${id}`, data),
+    deleteCoworking: (id: number) => api.delete(`/coworking/${id}`),
+    getActiveReservationsAdmin: () => api.get<{ items: CoworkingReservation[] }>('/coworking_reservations/get_all_reservations_active_admin'),
+    closeReservationAdmin: (data: { coworking_id: number }) =>
+        api.post<CoworkingReservation>('/coworking_reservations/close_admin', data),
+    createReservation: (data: { coworking_id: number }) =>
+        api.post<CoworkingReservation>('/coworking_reservations/', data),
+    closeReservation: (data: { coworking_id: number }) =>
+        api.post<CoworkingReservation>('/coworking_reservations/close', data),
+    getActiveReservations: () =>
+        api.get<{ items: CoworkingReservation[] }>('/coworking_reservations/get_all_reservations_active_by_user'),
+    getAllReservations: () =>
+        api.get<{ items: CoworkingReservation[] }>('/coworking_reservations/get_all_reservations_by_user'),
 }; 

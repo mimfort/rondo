@@ -76,4 +76,24 @@ export interface EventTag {
 export interface EventTagCreate {
     event_id: number;
     tag_id: number;
+}
+
+export interface Coworking {
+    id: number;
+    name: string;
+    description: string;
+    is_available: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CoworkingReservation {
+    id: number;
+    user_id: number;
+    coworking_id: number;
+    coworking: Coworking;
+    start_time: string;
+    end_time: string | null;
+    created_at: string;
+    updated_at: string;
 } 
