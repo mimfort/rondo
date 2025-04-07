@@ -50,7 +50,7 @@ export const authService = {
 
 export const eventService = {
     getAllEvents: async () => {
-        const response = await api.get<Event[]>('/events');
+        const response = await api.get<Event[]>('/events/');
         // Преобразуем URL изображений
         const events = response.data.map(event => ({
             ...event,
@@ -122,8 +122,10 @@ export const eventService = {
         const response = await api.post(`/events/notification/${eventId}`);
         return response.data;
     },
-    getEvents: () => api.get<Event[]>('/events'),
+    getEvents: () => api.get<Event[]>('/events/'),
     registerForEvent: (eventId: number) => api.post<Registration>(`/users/registration/${eventId}`),
+    unregisterFromEvent: (eventId: number) => api.post(`/events/${eventId}/unregister`),
+    getEventRegistrations: (eventId: number) => api.get(`/events/${eventId}/registrations`),
 };
 
 export const registrationService = {
@@ -136,7 +138,10 @@ export const tagService = {
     getTagById: (id: number) => api.get<Tag>(`/tags/${id}`),
     createTag: (data: TagCreate) =>
         api.post<Tag>('/tags/create', null, {
-            params: data
+            params: {
+                name: data.name,
+                description: data.description,
+            },
         }),
     updateTag: (id: number, data: TagCreate) => api.put<Tag>(`/tags/update/${id}`, null, {
         params: {
@@ -159,7 +164,7 @@ export const coworkingService = {
     getAllCoworking: () => api.get<{ items: Coworking[] }>('/coworking/get_all_coworking'),
     getCoworkingById: (id: number) => api.get<Coworking>(`/coworking/${id}`),
     createCoworking: (data: { name: string; description: string; is_available: boolean }) =>
-        api.post<Coworking>('/coworking/', data),
+        api.post<Coworking>('/coworking', data),
     updateCoworking: (id: number, data: { name: string; description: string; is_available: boolean }) =>
         api.put<Coworking>(`/coworking/${id}`, data),
     deleteCoworking: (id: number) => api.delete(`/coworking/${id}`),
@@ -167,9 +172,9 @@ export const coworkingService = {
     closeReservationAdmin: (data: { coworking_id: number }) =>
         api.post<CoworkingReservation>('/coworking_reservations/close_admin', data),
     createReservation: (data: { coworking_id: number }) =>
-        api.post<CoworkingReservation>('/coworking_reservations/', data),
-    closeReservation: (data: { coworking_id: number }) =>
-        api.post<CoworkingReservation>('/coworking_reservations/close', data),
+        api.post<CoworkingReservation>('/coworking_reservations', data),
+    closeReservation: (coworking_id: number) =>
+        api.post<CoworkingReservation>('/coworking_reservations/close', coworking_id),
     getActiveReservations: () =>
         api.get<{ items: CoworkingReservation[] }>('/coworking_reservations/get_all_reservations_active_by_user'),
     getAllReservations: () =>

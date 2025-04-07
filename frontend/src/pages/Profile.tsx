@@ -6,7 +6,7 @@ import type { User, Registration, RegistrationWithEvent } from '../types';
 import { toast } from 'react-hot-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { api } from '../api/api';
+import api from '../api/config';
 
 const Profile = () => {
     const [activeTab, setActiveTab] = useState<'profile' | 'registrations'>('profile');

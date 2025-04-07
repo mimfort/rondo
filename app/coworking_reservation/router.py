@@ -13,13 +13,13 @@ router = APIRouter(
 )
 moscow_tz = timezone('Europe/Moscow')
 
-@router.post("/")
+@router.post("")
 async def create_coworking_reservation(
     coworking_reservation: CoworkingReservationCreate,
     current_user: User = Depends(get_current_user)
 ):
     
-    if (datetime.now(moscow_tz).hour < 9) or (datetime.now(moscow_tz).hour > 16) and False:
+    if ((datetime.now(moscow_tz).hour < 9) or (datetime.now(moscow_tz).hour > 16)) and False:
         raise HTTPException(status_code=400, detail="Коворкинг работает с 9 до 17")
     coworking = await CoworkingDAO.find_one_or_none(
         id = coworking_reservation.coworking_id,

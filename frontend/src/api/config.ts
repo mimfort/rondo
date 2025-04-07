@@ -1,9 +1,11 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-// В режиме разработки используем прямой URL бэкенда
-const isDev = import.meta.env.DEV;
-export const API_URL = isDev ? 'http://localhost:8000' : import.meta.env.VITE_API_URL;
+export const isDev = import.meta.env.DEV;
+export const isProd = import.meta.env.PROD;
+
+// В режиме разработки используем локальный сервер, в продакшене - HTTPS
+export const API_URL = isDev ? 'http://localhost:8000' : 'https://api.skk-rondo.ru';
 console.log('API_URL:', API_URL); // Для отладки
 
 // Функция для формирования URL изображений
@@ -21,7 +23,7 @@ const api = axios.create({
     withCredentials: true
 });
 
-// Обработка ошибок аутентификации
+// Обработка ответов
 api.interceptors.response.use(
     (response) => response,
     (error) => {
