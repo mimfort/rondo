@@ -6,6 +6,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqladmin import Admin
+from starlette.responses import Response
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.additional_registration.router import router as additional_reg_router
 from app.admin.auth import authentication_backend
@@ -23,6 +25,7 @@ from app.event_tags.router import router as event_tags_router
 from app.tags.router import router as tags_router
 from app.coworking.router import router as coworking_router
 from app.coworking_reservation.router import router as coworking_reservation_router
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Создаем директорию для загрузки файлов при запуске приложения
@@ -36,7 +39,7 @@ app = FastAPI(lifespan=lifespan)
 # Настройка CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://skk-rondo.ru", "http://localhost:80", "http://localhost:5173"],  # Разрешаем запросы с фронтенда
+    allow_origins=["https://skkrondo.ru", "http://localhost:80", "http://localhost:5173"],  # Разрешаем запросы с фронтенда
     allow_credentials=True,
     allow_methods=["*"],  # Разрешаем все методы
     allow_headers=["*"],  # Разрешаем все заголовки
@@ -45,7 +48,22 @@ app.add_middleware(
 # Монтируем статическую директорию для загруженных файлов
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
-admin = Admin(app, engine, authentication_backend=authentication_backend)
+async def https_redirect_middleware(request, call_next):
+    if request.url.scheme == "https":
+        return await call_next(request)
+    return Response(
+        status_code=301,
+        headers={"Location": str(request.url.replace(scheme="https"))}
+    )
+
+admin = Admin(
+    app, 
+    engine, 
+    authentication_backend=authentication_backend,
+    base_url="/admin",
+    title="Rondo Admin",
+    debug=False
+)
 
 admin.add_view(UserAdmin)
 admin.add_view(EventAdmin)

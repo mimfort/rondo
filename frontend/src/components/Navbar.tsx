@@ -42,7 +42,7 @@ const Navbar: React.FC = () => {
                             to="/"
                             className="text-2xl font-bold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105"
                         >
-                            СОТЫ
+                            РОНДО
                         </Link>
                     </div>
 
@@ -52,7 +52,7 @@ const Navbar: React.FC = () => {
                             to="/events"
                             className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200 font-semibold"
                         >
-                            События
+                            Соты
                         </Link>
                         <Link
                             to="/coworking"
@@ -163,7 +163,7 @@ const Navbar: React.FC = () => {
                             className="block px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 font-semibold hover:text-indigo-600 dark:hover:text-indigo-400"
                             onClick={() => setIsMobileMenuOpen(false)}
                         >
-                            События
+                            Соты
                         </Link>
                         <Link
                             to="/coworking"

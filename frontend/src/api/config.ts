@@ -5,7 +5,7 @@ export const isDev = import.meta.env.DEV;
 export const isProd = import.meta.env.PROD;
 
 // В режиме разработки используем локальный сервер, в продакшене - HTTPS
-export const API_URL = isDev ? 'http://localhost:8000' : 'https://api.skk-rondo.ru';
+export const API_URL = isDev ? 'http://localhost:8000' : 'https://api.skkrondo.ru';
 console.log('API_URL:', API_URL); // Для отладки
 
 // Функция для формирования URL изображений

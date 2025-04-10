@@ -37,7 +37,7 @@ services:
     ports:
       - "8181:80"
     environment:
-      - VITE_API_URL=https://api.skk-rondo.ru
+      - VITE_API_URL=https://api.skkrondo.ru
     depends_on:
       - backend
     networks:

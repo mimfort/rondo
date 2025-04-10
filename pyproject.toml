@@ -15,7 +15,7 @@ dependencies = [
     "python-jose==3.4.0",
     "sqlalchemy==2.0.28",
     "uvicorn==0.27.1",
-    "sqladmin==0.16.1",
+    "sqladmin==0.17.0",
     "itsdangerous==2.2.0",
     "celery==5.4.0",
     "redis==5.0.2",

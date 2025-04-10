@@ -21,7 +21,7 @@ const AnimatedLogo = () => {
                         damping: 10
                     }}
                 >
-                    СОТЫ
+                    РОНДО
                 </motion.h1>
                 <motion.h2
                     className="text-4xl font-bold text-blue-700"

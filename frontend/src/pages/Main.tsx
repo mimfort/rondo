@@ -160,34 +160,13 @@ const Main = () => {
                             <h1
                                 className="text-8xl font-black tracking-tighter mb-2 bg-clip-text text-transparent bg-gradient-to-r from-white to-[#e0e7ff]"
                             >
-                                СОТЫ
+                                РОНДО
                             </h1>
                         </motion.div>
 
                         <p className="text-2xl font-medium text-gray-200 mb-12 max-w-2xl">
-                            Молодежное пространство в Новом Девяткино
+                            Спортивно-культурный комплекс в Новом Девяткино
                         </p>
-
-                        <Link
-                            to="/events"
-                            className="group relative inline-flex items-center gap-2 px-8 py-4 bg-white/10 backdrop-blur-sm rounded-full text-white font-medium overflow-hidden transition-all duration-300 hover:bg-white/20"
-                        >
-                            <span>Смотреть события</span>
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M13 7l5 5m0 0l-5 5m5-5H6"
-                                />
-                            </svg>
-                        </Link>
                     </div>
                 </div>
             </motion.div>
@@ -206,9 +185,25 @@ const Main = () => {
                         viewport={{ once: true }}
                         transition={{ duration: 0.6 }}
                     >
-                        О пространстве
+                        О нас
                     </motion.h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+                        <motion.div
+                            className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+                            variants={fadeIn}
+                        >
+                            <div className="text-indigo-600 dark:text-indigo-400 mb-4">
+                                <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" strokeWidth={2} />
+                                    <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2" strokeWidth={2} strokeLinecap="round" />
+                                    <path d="M12 2v20M2 12h20" strokeWidth={2} strokeLinecap="round" />
+                                    <path d="M12 7c2.761 0 5 2.239 5 5s-2.239 5-5 5-5-2.239-5-5 2.239-5 5-5" strokeWidth={2} strokeLinecap="round" />
+                                </svg>
+                            </div>
+                            <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Спорт и активность</h3>
+                            <p className="text-gray-600 dark:text-gray-300">Спортивные секции и кружки для всех возрастов. Теннисный корт с профессиональным покрытием доступен для аренды. Создайте свою идеальную тренировку!</p>
+                        </motion.div>
+
                         <motion.div
                             className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
                             variants={fadeIn}
@@ -288,25 +283,27 @@ const Main = () => {
                                     </p>
                                 </div>
                                 <div>
+                                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">Контакты</h3>
+                                    <div className="mt-2 space-y-2">
+                                        <p className="text-gray-600 dark:text-gray-300">
+                                            Тел.: 8 (812) 679-79-05
+                                        </p>
+                                        <p className="text-gray-600 dark:text-gray-300">
+                                            Email: info@skkrondo.ru
+                                        </p>
+                                    </div>
+                                </div>
+                                <div>
                                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">Социальные сети</h3>
                                     <div className="mt-4 flex space-x-6">
                                         <a
-                                            href="https://vk.com/ndsoty"
+                                            href="https://vk.com/skkrondo"
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="text-gray-600 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400 transition-colors duration-200"
                                         >
                                             <span className="sr-only">ВКонтакте</span>
                                             <img src={VkIcon} alt="ВКонтакте" className="h-8 w-8" />
-                                        </a>
-                                        <a
-                                            href="https://t.me/molodnd"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-gray-600 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400 transition-colors duration-200"
-                                        >
-                                            <span className="sr-only">Telegram</span>
-                                            <img src={TelegramIcon} alt="Telegram" className="h-8 w-8" />
                                         </a>
                                     </div>
                                 </div>
