@@ -40,7 +40,7 @@ const Navbar: React.FC = () => {
                     <div className="flex items-center">
                         <Link
                             to="/"
-                            className="text-2xl font-bold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105"
+                            className="text-2xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-indigo-500 to-violet-500 hover:from-blue-600 hover:via-indigo-600 hover:to-violet-600 transition-all duration-300 transform hover:scale-105 hover:drop-shadow-[0_0_15px_rgba(99,102,241,0.5)]"
                         >
                             РОНДО
                         </Link>

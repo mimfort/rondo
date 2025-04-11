@@ -188,11 +188,11 @@ const Home = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="text-center mb-12"
             >
-                <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                <h1 className="text-6xl font-black tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
                     СОТЫ
                 </h1>
-                <p className="text-xl text-gray-600 dark:text-gray-300">
-                    Молодежное пространство в Новом Девяткино
+                <p className="text-2xl font-medium text-gray-600 dark:text-gray-300">
+                    Молодежное пространство
                 </p>
             </motion.div>
 

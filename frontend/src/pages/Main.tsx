@@ -165,7 +165,7 @@ const Main = () => {
                         </motion.div>
 
                         <p className="text-2xl font-medium text-gray-200 mb-12 max-w-2xl">
-                            Спортивно-культурный комплекс в Новом Девяткино
+                            Спортивно-культурный комплекс
                         </p>
                     </div>
                 </div>
@@ -264,11 +264,9 @@ const Main = () => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center">
                         <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white sm:text-4xl">
-                            Контакты
+                            Свяжитесь с нами
                         </h2>
-                        <p className="mt-4 text-lg text-gray-500 dark:text-gray-400">
-                            Свяжитесь с нами любым удобным способом
-                        </p>
+
                     </div>
 
                     <div className="mt-12 grid grid-cols-1 gap-8 lg:grid-cols-2">
@@ -350,7 +348,7 @@ const Main = () => {
                                 </div>
                                 <div className="text-gray-600 dark:text-gray-400">
                                     <p className="text-sm font-medium">По вопросам работы сайта</p>
-                                    <p className="text-lg font-semibold">@neloh074</p>
+
                                 </div>
                             </div>
                         </a>

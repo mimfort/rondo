@@ -358,14 +358,14 @@ const Coworking = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-8"
+        className="text-center mb-12"
       >
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          Коворкинг
+        <h1 className="text-6xl font-black tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
+          КОВОРКИНГ
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-2xl font-medium text-gray-600 dark:text-gray-300">
           Выберите удобное место для работы
         </p>
       </motion.div>
