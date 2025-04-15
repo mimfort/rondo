@@ -5,11 +5,15 @@ from typing import List, Optional
 from sqlalchemy import DateTime, String, Text, func, select, Boolean, Integer, text
 from sqlalchemy.orm import Mapped, column_property, mapped_column, relationship
 
-from app.additional_registration.model import Registration_additional
+
 from app.database import Base
-from app.registration.model import Registration
-from app.event_tags.model import EventTag
-from app.tags.model import Tag
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.registration.model import Registration
+    from app.additional_registration.model import Registration_additional
+    from app.event_tags.model import EventTag
+    from app.tags.model import Tag
 
 
 class Event(Base):
@@ -42,17 +46,15 @@ class Event(Base):
     )
 
     # Relationships
-    registrations: Mapped[list["Registration"]] = relationship(back_populates="event")
-    registration_additional: Mapped[list["Registration_additional"]] = relationship(
-        back_populates="event"
-    )
-    event_tags: Mapped[List["EventTag"]] = relationship(
+    registrations = relationship("Registration", back_populates="event")
+    registration_additional = relationship("Registration_additional", back_populates="event")
+    event_tags = relationship(
         "EventTag",
         back_populates="event",
         cascade="all, delete-orphan",
         overlaps="tags"
     )
-    tags: Mapped[List["Tag"]] = relationship(
+    tags = relationship(
         "Tag",
         secondary="event_tags",
         back_populates="events",
@@ -60,10 +62,15 @@ class Event(Base):
     )
 
     registration_count = column_property(
-        select(func.count(Registration.id))
-        .where(Registration.event_id == id)
+        select(func.count("registration.id"))
+        .where("registration.event_id" == id)
         .scalar_subquery()
     )
 
     def __str__(self):
         return f"Ивент №{self.id}-{self.title}"
+
+# Импорты после определения всех моделей
+from app.event_tags.model import EventTag
+from app.tags.model import Tag
+from app.additional_registration.model import Registration_additional

@@ -5,9 +5,9 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
-from app.users.model import User
 
 if TYPE_CHECKING:
+    from app.users.model import User
     from app.events.model import Event
 
 
@@ -18,8 +18,11 @@ class Registration(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     event_id: Mapped[int] = mapped_column(ForeignKey("event.id", ondelete="CASCADE"), nullable=False, index=True)
     # Relationships
-    user: Mapped["User"] = relationship(back_populates="registrations")
-    event: Mapped["Event"] = relationship(back_populates="registrations")
+    user = relationship("User", back_populates="registrations")
+    event = relationship("Event", back_populates="registrations")
 
     def __str__(self):
-        return f"Юзер {self.user_id} на ивент {self.event_id}"
+        return f"Регистрация {self.id}"
+
+# Импорты после определения всех моделей
+from app.events.model import Event

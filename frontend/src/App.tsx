@@ -32,6 +32,8 @@ import ErrorPage from './components/ErrorPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import Coworking from './pages/Coworking';
+import Courts from './pages/Courts';
+import CourtsAdmin from './pages/admin/CourtsAdmin';
 
 const Layout = () => {
     return (
@@ -55,6 +57,7 @@ const router = createBrowserRouter(
         <Route path="/" element={<Layout />} errorElement={<ErrorPage />}>
             <Route index element={<PageTransition><Main /></PageTransition>} />
             <Route path="events" element={<PageTransition><Home /></PageTransition>} />
+            <Route path="courts" element={<PageTransition><Courts /></PageTransition>} />
             <Route path="profile" element={
                 <ProtectedRoute>
                     <PageTransition><Profile /></PageTransition>
@@ -69,6 +72,7 @@ const router = createBrowserRouter(
             }>
                 <Route path="events" element={<AdminEvents />} />
                 <Route path="coworking" element={<AdminCoworking />} />
+                <Route path="courts" element={<CourtsAdmin />} />
             </Route>
             <Route path="login" element={<PageTransition><Login /></PageTransition>} />
             <Route path="register" element={<PageTransition><Register /></PageTransition>} />

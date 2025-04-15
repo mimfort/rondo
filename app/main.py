@@ -25,6 +25,8 @@ from app.event_tags.router import router as event_tags_router
 from app.tags.router import router as tags_router
 from app.coworking.router import router as coworking_router
 from app.coworking_reservation.router import router as coworking_reservation_router
+from app.courts.router import router as courts_router
+from app.court_reservation.router import router as court_reservation_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -79,3 +81,5 @@ app.include_router(event_tags_router)
 app.include_router(tags_router)
 app.include_router(coworking_router)
 app.include_router(coworking_reservation_router)
+app.include_router(courts_router)
+app.include_router(court_reservation_router)

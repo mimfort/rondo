@@ -5,10 +5,10 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
-from app.users.model import User
 
 if TYPE_CHECKING:
     from app.events.model import Event
+    from app.users.model import User
 
 
 class Registration_additional(Base):
@@ -19,7 +19,7 @@ class Registration_additional(Base):
     event_id: Mapped[int] = mapped_column(ForeignKey("event.id"), nullable=False)
 
     # Relationships
-    user: Mapped["User"] = relationship(back_populates="registration_additional")
+    user = relationship("User", back_populates="registration_additional")
     event: Mapped["Event"] = relationship(back_populates="registration_additional")
 
     def __str__(self):

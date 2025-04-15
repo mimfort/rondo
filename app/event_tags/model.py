@@ -1,7 +1,11 @@
 from sqlalchemy import Column, Integer, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
-from typing import List
+from typing import List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.events.model import Event
+    from app.tags.model import Tag
 
 
 class EventTag(Base):
@@ -11,5 +15,5 @@ class EventTag(Base):
     tag_id: Mapped[int] = mapped_column(ForeignKey("tag.id"), index=True)
     
     # Связи с моделями
-    event: Mapped["Event"] = relationship(back_populates="event_tags")
-    tag: Mapped["Tag"] = relationship(back_populates="event_tags")
+    event = relationship("Event", back_populates="event_tags")
+    tag = relationship("Tag", back_populates="event_tags")

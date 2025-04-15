@@ -1,12 +1,16 @@
+import asyncio
 import logging
 import smtplib
 from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+from app.court_reservation.dao import CourtReservationDAO
 from app.tasks.celery_app import celery
 from app.tasks.service import SpecialConvert
 from app.users.auth import generate_confirmation_token
+from celery import shared_task
+from asgiref.sync import async_to_sync
 
 logger = logging.getLogger(__name__)
 
@@ -203,3 +207,15 @@ def send_forgot_password_email(
     except Exception as e:
         logger.error(f"Ошибка {str(e)}")
         return {"status": "error", "message": str(e)}
+@celery.task(name="cancel_if_not_confirmed")
+def cancel_if_not_confirmed(reservation_id: int) -> str:
+    asyncio.run(inner(reservation_id))
+
+
+async def inner(reservation_id: int):
+    reservation = await CourtReservationDAO.find_one_or_none(id=reservation_id)
+    if reservation:
+        if not reservation.is_confirmed:
+            await CourtReservationDAO.delete(reservation_id)
+            return True
+

@@ -15,6 +15,8 @@ from app.event_tags.model import EventTag
 from app.tags.model import Tag
 from app.coworking.model import Coworking
 from app.coworking_reservation.model import CoworkingReservation
+from app.courts.model import Court
+from app.court_reservation.model import CourtReservation
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config

@@ -55,6 +55,12 @@ const Navbar: React.FC = () => {
                             Соты
                         </Link>
                         <Link
+                            to="/courts"
+                            className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200 font-semibold"
+                        >
+                            Корты
+                        </Link>
+                        <Link
                             to="/coworking"
                             className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200 font-semibold"
                         >
@@ -163,7 +169,14 @@ const Navbar: React.FC = () => {
                             className="block px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 font-semibold hover:text-indigo-600 dark:hover:text-indigo-400"
                             onClick={() => setIsMobileMenuOpen(false)}
                         >
-                            Соты
+                            События
+                        </Link>
+                        <Link
+                            to="/courts"
+                            className="block px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 font-semibold hover:text-indigo-600 dark:hover:text-indigo-400"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                            Корты
                         </Link>
                         <Link
                             to="/coworking"

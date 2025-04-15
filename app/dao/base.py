@@ -70,6 +70,9 @@ class BaseDAO:
             if query is not None:
                 await session.execute(query)
                 await session.commit()
+                return True
+            else:
+                return False
 
     @classmethod
     async def count(cls, **filter_by):
