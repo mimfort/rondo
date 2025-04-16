@@ -96,4 +96,19 @@ export interface CoworkingReservation {
     end_time: string | null;
     created_at: string;
     updated_at: string;
+}
+
+export interface CourtReservation {
+    id: number;
+    court_id: number;
+    date: string;
+    time: number;
+    user_id: number;
+    created_at: string;
+    is_confirmed: boolean;
+}
+
+export interface CourtReservationsResponse {
+    items: CourtReservation[];
+    total: number;
 } 

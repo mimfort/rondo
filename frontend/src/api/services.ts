@@ -10,7 +10,8 @@ import type {
     TagCreate,
     EventTag,
     Coworking,
-    CoworkingReservation
+    CoworkingReservation,
+    CourtReservationsResponse
 } from '../types';
 import axios from 'axios';
 
@@ -179,4 +180,8 @@ export const coworkingService = {
         api.get<{ items: CoworkingReservation[] }>('/coworking_reservations/get_all_reservations_active_by_user'),
     getAllReservations: () =>
         api.get<{ items: CoworkingReservation[] }>('/coworking_reservations/get_all_reservations_by_user'),
+};
+
+export const courtReservationService = {
+    getMyReservations: () => api.get<CourtReservationsResponse>('/court_reservations/my_reservations'),
 }; 

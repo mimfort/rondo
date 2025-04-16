@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { authService, registrationService, eventService } from '../api/services';
-import type { User, Registration, RegistrationWithEvent } from '../types';
+import { authService, registrationService, eventService, courtReservationService } from '../api/services';
+import type { User, Registration, RegistrationWithEvent, CourtReservation } from '../types';
 import { toast } from 'react-hot-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import LoadingSpinner from '../components/LoadingSpinner';
 import api from '../api/config';
 
 const Profile = () => {
-    const [activeTab, setActiveTab] = useState<'profile' | 'registrations'>('profile');
+    const [activeTab, setActiveTab] = useState<'profile' | 'registrations' | 'courts'>('profile');
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({
         firstName: '',
@@ -38,6 +38,14 @@ const Profile = () => {
                 })
             );
             return registrationsWithEvents;
+        },
+    });
+
+    const { data: courtReservations, isLoading: isLoadingCourtReservations } = useQuery({
+        queryKey: ['courtReservations'],
+        queryFn: async () => {
+            const response = await courtReservationService.getMyReservations();
+            return response.data.items;
         },
     });
 
@@ -89,7 +97,7 @@ const Profile = () => {
         cancelRegistrationMutation.mutate(eventId);
     };
 
-    if (isLoadingUser || isLoadingRegistrations) {
+    if (isLoadingUser || isLoadingRegistrations || isLoadingCourtReservations) {
         return <LoadingSpinner />;
     }
 
@@ -144,6 +152,18 @@ const Profile = () => {
                             whileTap={{ scale: 0.95 }}
                         >
                             Мои регистрации
+                        </motion.button>
+                        <motion.button
+                            onClick={() => setActiveTab('courts')}
+                            className={`px-6 py-3 text-base font-medium rounded-xl transition-all duration-200
+                                ${activeTab === 'courts' ? 'text-indigo-700 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400'}
+                            `}
+                            variants={tabVariants}
+                            animate={activeTab === 'courts' ? 'active' : 'inactive'}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                        >
+                            Корт
                         </motion.button>
                     </div>
                 </div>
@@ -306,7 +326,7 @@ const Profile = () => {
                                     </motion.div>
                                 </div>
                             </motion.div>
-                        ) : (
+                        ) : activeTab === 'registrations' ? (
                             <motion.div
                                 key="registrations"
                                 variants={contentVariants}
@@ -393,6 +413,48 @@ const Profile = () => {
                                                 У вас пока нет регистраций на события
                                             </p>
                                         </motion.div>
+                                    )}
+                                </div>
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                key="courts"
+                                variants={contentVariants}
+                                initial="hidden"
+                                animate="visible"
+                                exit="exit"
+                                className="p-6"
+                            >
+                                <div className="space-y-6">
+                                    {isLoadingCourtReservations ? (
+                                        <LoadingSpinner />
+                                    ) : courtReservations?.length === 0 ? (
+                                        <div className="text-center text-gray-500 dark:text-gray-400">
+                                            У вас пока нет бронирований кортов
+                                        </div>
+                                    ) : (
+                                        courtReservations?.map((reservation) => (
+                                            <motion.div
+                                                key={reservation.id}
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4"
+                                            >
+                                                <div className="flex justify-between items-center">
+                                                    <div>
+                                                        <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                                                            Корт #{reservation.court_id}
+                                                        </h3>
+                                                        <p className="text-gray-500 dark:text-gray-400">
+                                                            {new Date(reservation.date).toLocaleDateString('ru-RU')} в {reservation.time}:00
+                                                        </p>
+                                                    </div>
+                                                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                                                        {new Date(reservation.created_at).toLocaleString('ru-RU')}
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        ))
                                     )}
                                 </div>
                             </motion.div>

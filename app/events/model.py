@@ -61,11 +61,11 @@ class Event(Base):
         overlaps="event_tags,event,tag"
     )
 
-    registration_count = column_property(
-        select(func.count("registration.id"))
-        .where("registration.event_id" == id)
-        .scalar_subquery()
-    )
+    # registration_count = column_property(
+    #     select(func.count("registration.id"))
+    #     .where("registration.event_id" == id)
+    #     .scalar_subquery()
+    # )
 
     def __str__(self):
         return f"Ивент №{self.id}-{self.title}"
