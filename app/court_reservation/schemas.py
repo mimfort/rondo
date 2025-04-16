@@ -5,7 +5,7 @@ from datetime import date
 class CourtReservationBase(BaseModel):
     court_id: int
     date: date
-    time: str
+    time: int
 
 class CourtReservationCreate(CourtReservationBase):
     pass

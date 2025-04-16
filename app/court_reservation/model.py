@@ -10,7 +10,7 @@ class CourtReservation(Base):
     court_id = Column(Integer, ForeignKey("courts.id"))
     user_id = Column(Integer, ForeignKey("users.id"))
     date = Column(Date)
-    time = Column(String)
+    time = Column(Integer)
     created_at = Column(DateTime, default=datetime.utcnow)
     is_confirmed = Column(Boolean, default=False)
 
