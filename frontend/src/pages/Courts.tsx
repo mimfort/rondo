@@ -1,47 +1,94 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import styled from '@emotion/styled';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/config';
+import { format, addDays, isBefore, startOfToday, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns';
+import { ru } from 'date-fns/locale';
 
 const CourtContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  padding: 2rem;
+  padding: 1rem;
   max-width: 1200px;
   margin: 0 auto;
+
+  @media (max-width: 768px) {
+    padding: 0.5rem;
+    gap: 1rem;
+  }
+`;
+
+const DateSlider = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.5rem;
+  margin: 0.5rem auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  justify-content: center;
+  width: 100%;
+  max-width: 600px;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.25rem;
+    gap: 0.25rem;
+    justify-content: flex-start;
+    margin: 0.5rem 0;
+    max-width: 100%;
+  }
+`;
+
+const DateButton = styled.button<{ isSelected: boolean; isDisabled: boolean }>`
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  border: none;
+  background: ${({ isSelected }) => (isSelected ? '#818cf8' : '#fff')};
+  color: ${({ isSelected, isDisabled }) =>
+        isDisabled ? '#9CA3AF' : isSelected ? '#fff' : '#1F2937'};
+  cursor: ${({ isDisabled }) => (isDisabled ? 'not-allowed' : 'pointer')};
+  opacity: ${({ isDisabled }) => (isDisabled ? 0.5 : 1)};
+  transition: all 0.2s ease;
+  min-width: 80px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  @media (max-width: 768px) {
+    min-width: 60px;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.9rem;
+  }
 `;
 
 const CourtsGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 `;
 
 const CourtCard = styled(motion.div)`
   background: white;
   border-radius: 1rem;
-  padding: 2rem;
+  padding: 1.5rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
 
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  }
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 5px;
-    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  @media (max-width: 768px) {
+    padding: 1rem;
+    border-radius: 0.75rem;
   }
 `;
 
@@ -60,19 +107,210 @@ const TimeSlot = styled.div<{ available: boolean; selected: boolean }>`
   align-items: center;
   font-weight: 500;
 
-  &:hover {
-    transform: ${({ available }) => available ? 'scale(1.02)' : 'none'};
+  @media (max-width: 768px) {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
   }
 `;
 
 const CourtImage = styled.div`
   width: 100%;
-  height: 400px;
+  height: 300px;
   background-image: url('https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');
   background-size: cover;
   background-position: center;
   border-radius: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
+
+  @media (max-width: 768px) {
+    height: 200px;
+    border-radius: 0.75rem;
+  }
+`;
+
+const DateNavigationContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1rem 0;
+  padding: 0 1rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+
+  @media (max-width: 768px) {
+    padding: 0 0.5rem;
+    gap: 0.5rem;
+    max-width: 100%;
+  }
+`;
+
+const NavigationButton = styled.button`
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: #f3f4f6;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
+const WeekLabel = styled.div`
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #374151;
+  min-width: 200px;
+  text-align: center;
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+    min-width: 150px;
+  }
+`;
+
+const PaymentButton = styled.button`
+  background: linear-gradient(to right, #4f46e5, #818cf8);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  &:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.6rem 1.25rem;
+    font-size: 0.9rem;
+  }
+`;
+
+const TemporaryReservationsContainer = styled.div`
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+    margin-top: 1.5rem;
+  }
+`;
+
+const TemporaryReservationCard = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: #f3f4f6;
+  border-radius: 0.75rem;
+  margin-bottom: 0.75rem;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+`;
+
+const CancelButton = styled.button`
+  background: white;
+  color: #ef4444;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  border: 1px solid #ef4444;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &:hover {
+    background: #fee2e2;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+    color: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: center;
+  }
+`;
+
+const ConfirmButton = styled.button`
+  background: linear-gradient(to right, #f59e0b, #fbbf24);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  &:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: center;
+  }
 `;
 
 interface Court {
@@ -84,58 +322,516 @@ interface Court {
     not_available_dates: string[];
 }
 
-const Courts = () => {
-    const { currentUser } = useAuth();
+interface Reservation {
+    court_id: number;
+    date: string;
+    time: number;
+    id: number;
+    user_id: number;
+    created_at: string;
+    is_confirmed: boolean;
+}
+
+const StaticHeader = React.memo(() => (
+    <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center mb-8"
+    >
+        <h1 className="text-6xl font-bold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text mb-4">
+            КОРТЫ
+        </h1>
+        <p className="text-xl text-gray-600 dark:text-gray-400 font-medium">
+            Теннисное пространство
+        </p>
+    </motion.div>
+));
+
+const DynamicContent = React.memo(({
+    currentWeekStart,
+    selectedDate,
+    courts,
+    reservations,
+    currentUser,
+    onDateSelect,
+    onPrevWeek,
+    onNextWeek,
+    onReservationsUpdate,
+    onTemporaryReservationsUpdate
+}: {
+    currentWeekStart: Date;
+    selectedDate: Date;
+    courts: Court[];
+    reservations: Reservation[];
+    currentUser: any;
+    onDateSelect: (date: Date) => void;
+    onPrevWeek: (e: React.MouseEvent) => void;
+    onNextWeek: (e: React.MouseEvent) => void;
+    onReservationsUpdate: (reservations: Reservation[]) => void;
+    onTemporaryReservationsUpdate: () => Promise<void>;
+}) => {
     const navigate = useNavigate();
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
     const [selectedCourt, setSelectedCourt] = useState<number | null>(null);
-    const [courts, setCourts] = useState<Court[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fetchCourts = async () => {
-            try {
-                const response = await api.get('/courts/');
-                setCourts(response.data.items);
-            } catch (err) {
-                setError('Не удалось загрузить информацию о кортах');
-                console.error('Error fetching courts:', err);
-            } finally {
-                setLoading(false);
-            }
+    const getDayAbbreviation = (date: Date) => {
+        const days = {
+            0: 'Вс',
+            1: 'Пн',
+            2: 'Вт',
+            3: 'Ср',
+            4: 'Чт',
+            5: 'Пт',
+            6: 'Сб'
         };
+        return days[date.getDay() as keyof typeof days];
+    };
 
-        fetchCourts();
-    }, []);
+    const handleDateSelect = useCallback((date: Date, e: React.MouseEvent) => {
+        e.preventDefault();
+        onDateSelect(date);
+    }, [onDateSelect]);
+
+    const generateDateButtons = useCallback(() => {
+        const buttons = [];
+        const today = startOfToday();
+
+        for (let i = 0; i < 7; i++) {
+            const date = addDays(currentWeekStart, i);
+            const isDisabled = isBefore(date, today) && !format(date, 'yyyy-MM-dd').includes(format(today, 'yyyy-MM-dd'));
+
+            buttons.push(
+                <DateButton
+                    key={i}
+                    isSelected={format(selectedDate, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')}
+                    isDisabled={isDisabled}
+                    onClick={(e) => !isDisabled && handleDateSelect(date, e)}
+                >
+                    <div className="text-sm">{getDayAbbreviation(date)}</div>
+                    <div className="text-lg font-semibold">{format(date, 'd')}</div>
+                </DateButton>
+            );
+        }
+        return buttons;
+    }, [currentWeekStart, selectedDate, handleDateSelect]);
 
     const generateTimeSlots = () => {
         const slots = [];
         for (let hour = 10; hour <= 21; hour++) {
-            slots.push(`${hour}:00`);
+            slots.push(hour);
         }
         return slots;
     };
 
-    const handleTimeSelect = (courtId: number, time: string) => {
+    const isTimeSlotAvailable = (courtId: number, time: number) => {
+        const reservation = reservations.find(
+            r => r.court_id === courtId && r.time === time
+        );
+
+        if (reservation) {
+            return {
+                available: false,
+                isTemporary: !reservation.is_confirmed
+            };
+        }
+
+        return {
+            available: true,
+            isTemporary: false
+        };
+    };
+
+    const handleTimeSelect = (courtId: number, time: number) => {
         if (!currentUser) {
             navigate('/login');
             return;
         }
+
+        const { available } = isTimeSlotAvailable(courtId, time);
+        if (!available) return;
+
         setSelectedCourt(courtId);
-        setSelectedTime(time);
+        setSelectedTime(time.toString());
     };
 
-    const isTimeSlotAvailable = (court: Court, time: string) => {
-        if (!court.is_available) return false;
+    const handlePayment = async (courtId: number, time: number) => {
+        if (!currentUser) {
+            navigate('/login');
+            return;
+        }
 
-        const today = new Date();
-        const [hours] = time.split(':').map(Number);
-        const slotDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hours);
-        const dateString = slotDate.toISOString().split('T')[0];
+        setIsLoading(true);
+        setError(null);
 
-        return !court.not_available_dates?.includes(dateString);
+        try {
+            await api.post('/court_reservations/temporary', {
+                court_id: courtId,
+                date: format(selectedDate, 'yyyy-MM-dd'),
+                time: time
+            });
+
+            // Обновляем список резерваций
+            const response = await api.get(`/court_reservations/all/${format(selectedDate, 'yyyy-MM-dd')}`);
+            onReservationsUpdate(response.data.items);
+
+            // Обновляем список временных броней
+            await onTemporaryReservationsUpdate();
+
+            // Сбрасываем выбранное время и корт
+            setSelectedTime(null);
+            setSelectedCourt(null);
+        } catch (err: any) {
+            setError(err.response?.data?.detail || 'Произошла ошибка при создании брони');
+            console.error('Error creating temporary reservation:', err);
+        } finally {
+            setIsLoading(false);
+        }
     };
+
+    return (
+        <>
+            <DateNavigationContainer>
+                <NavigationButton
+                    onClick={onPrevWeek}
+                    disabled={isBefore(currentWeekStart, startOfToday())}
+                >
+                    ←
+                </NavigationButton>
+                <WeekLabel>
+                    {`${format(currentWeekStart, 'd')}–${format(endOfWeek(currentWeekStart, { weekStartsOn: 1 }), 'd')} ${format(currentWeekStart, 'MMMM', { locale: ru })}`}
+                </WeekLabel>
+                <NavigationButton onClick={onNextWeek}>
+                    →
+                </NavigationButton>
+            </DateNavigationContainer>
+
+            <DateSlider>
+                {generateDateButtons()}
+            </DateSlider>
+
+            {error && (
+                <div className="text-red-500 text-center mb-4 p-2 bg-red-50 rounded">
+                    {error}
+                </div>
+            )}
+
+            <CourtsGrid>
+                {courts.map((court) => (
+                    <CourtCard
+                        key={court.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                    >
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                                {court.name}
+                            </h2>
+                            <span className="text-lg font-medium text-gray-900 dark:text-white">
+                                {court.price} ₽/час
+                            </span>
+                        </div>
+                        <p className="text-gray-600 dark:text-gray-400 mb-4">
+                            {court.description}
+                        </p>
+                        <div className="space-y-2">
+                            {generateTimeSlots().map((time) => {
+                                const { available, isTemporary } = isTimeSlotAvailable(court.id, time);
+                                const isSelected = selectedCourt === court.id && selectedTime === time.toString();
+
+                                return (
+                                    <div key={time}>
+                                        <TimeSlot
+                                            available={available}
+                                            selected={isSelected}
+                                            onClick={() => handleTimeSelect(court.id, time)}
+                                            style={{
+                                                background: isTemporary ? '#FCD34D' : available ? '#34d399' : '#ef4444'
+                                            }}
+                                        >
+                                            <span>{`${time}:00`}</span>
+                                            <span>
+                                                {isTemporary ? 'Ожидает оплаты' : available ? 'Доступно' : 'Занято'}
+                                            </span>
+                                        </TimeSlot>
+                                        {isSelected && (
+                                            <PaymentButton
+                                                onClick={() => handlePayment(court.id, time)}
+                                                disabled={isLoading}
+                                            >
+                                                {isLoading ? (
+                                                    <>
+                                                        <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                                        </svg>
+                                                        Обработка...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                        </svg>
+                                                        Перейти к оплате
+                                                    </>
+                                                )}
+                                            </PaymentButton>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </CourtCard>
+                ))}
+            </CourtsGrid>
+        </>
+    );
+});
+
+const TemporaryReservations = React.memo(({
+    courts,
+    onReservationsUpdate,
+    temporaryReservations,
+    onTemporaryReservationsUpdate
+}: {
+    courts: Court[];
+    onReservationsUpdate: (reservations: Reservation[]) => void;
+    temporaryReservations: Reservation[];
+    onTemporaryReservationsUpdate: () => Promise<void>;
+}) => {
+    const [error, setError] = useState<string | null>(null);
+    const [confirmingId, setConfirmingId] = useState<number | null>(null);
+    const [cancelingId, setCancelingId] = useState<number | null>(null);
+
+    const handleConfirmPayment = async (reservationId: number) => {
+        setConfirmingId(reservationId);
+        setError(null);
+
+        try {
+            await api.post(`/court_reservations/${reservationId}/confirm`);
+
+            // Обновляем список временных броней
+            await onTemporaryReservationsUpdate();
+
+            // Обновляем основной список резерваций
+            const date = temporaryReservations.find(r => r.id === reservationId)?.date;
+            if (date) {
+                const response = await api.get(`/court_reservations/all/${date}`);
+                onReservationsUpdate(response.data.items);
+            }
+        } catch (err: any) {
+            setError(err.response?.data?.detail || 'Произошла ошибка при подтверждении оплаты');
+        } finally {
+            setConfirmingId(null);
+        }
+    };
+
+    const handleCancelReservation = async (reservationId: number) => {
+        setCancelingId(reservationId);
+        setError(null);
+
+        try {
+            await api.delete(`/court_reservations/cancel/${reservationId}`);
+
+            // Обновляем список временных броней
+            await onTemporaryReservationsUpdate();
+
+            // Обновляем основной список резерваций
+            const date = temporaryReservations.find(r => r.id === reservationId)?.date;
+            if (date) {
+                const response = await api.get(`/court_reservations/all/${date}`);
+                onReservationsUpdate(response.data.items);
+            }
+        } catch (err: any) {
+            setError(err.response?.data?.detail || 'Произошла ошибка при отмене брони');
+        } finally {
+            setCancelingId(null);
+        }
+    };
+
+    if (temporaryReservations.length === 0) {
+        return null;
+    }
+
+    return (
+        <TemporaryReservationsContainer>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Ожидают подтверждения оплаты
+            </h2>
+            {error && (
+                <div className="text-red-500 text-sm mb-4 p-2 bg-red-50 rounded">
+                    {error}
+                </div>
+            )}
+            <div className="space-y-3">
+                {temporaryReservations.map((reservation) => {
+                    const court = courts.find(c => c.id === reservation.court_id);
+                    const isProcessing = confirmingId === reservation.id || cancelingId === reservation.id;
+
+                    return (
+                        <TemporaryReservationCard key={reservation.id}>
+                            <div className="flex flex-col gap-1">
+                                <div className="font-medium text-gray-900">
+                                    {court?.name}
+                                </div>
+                                <div className="text-sm text-gray-600">
+                                    {format(new Date(reservation.date), 'd MMMM yyyy', { locale: ru })} в {reservation.time}:00
+                                </div>
+                                <div className="text-sm font-medium text-indigo-600">
+                                    {court?.price} ₽
+                                </div>
+                            </div>
+                            <ButtonGroup>
+                                <CancelButton
+                                    onClick={() => handleCancelReservation(reservation.id)}
+                                    disabled={isProcessing}
+                                >
+                                    {cancelingId === reservation.id ? (
+                                        <>
+                                            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                            </svg>
+                                            Отмена...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                            Отменить
+                                        </>
+                                    )}
+                                </CancelButton>
+                                <ConfirmButton
+                                    onClick={() => handleConfirmPayment(reservation.id)}
+                                    disabled={isProcessing}
+                                >
+                                    {confirmingId === reservation.id ? (
+                                        <>
+                                            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                            </svg>
+                                            Подтверждение...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Подтвердить оплату
+                                        </>
+                                    )}
+                                </ConfirmButton>
+                            </ButtonGroup>
+                        </TemporaryReservationCard>
+                    );
+                })}
+            </div>
+        </TemporaryReservationsContainer>
+    );
+});
+
+const Courts = () => {
+    const { currentUser } = useAuth();
+    const [courts, setCourts] = useState<Court[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+    const [currentWeekStart, setCurrentWeekStart] = useState<Date>(startOfWeek(new Date(), { weekStartsOn: 1 }));
+    const [reservations, setReservations] = useState<Reservation[]>([]);
+    const [temporaryReservations, setTemporaryReservations] = useState<Reservation[]>([]);
+
+    // Загрузка временных броней
+    const fetchTemporaryReservations = useCallback(async () => {
+        try {
+            const response = await api.get('/court_reservations/my_temporary_reservations');
+            setTemporaryReservations(response.data.items);
+        } catch (err) {
+            console.error('Error fetching temporary reservations:', err);
+        }
+    }, []);
+
+    // Загрузка кортов и временных броней при монтировании
+    useEffect(() => {
+        let isMounted = true;
+
+        const fetchInitialData = async () => {
+            try {
+                const [courtsResponse, temporaryResponse] = await Promise.all([
+                    api.get('/courts/'),
+                    api.get('/court_reservations/my_temporary_reservations')
+                ]);
+
+                if (isMounted) {
+                    setCourts(courtsResponse.data.items);
+                    setTemporaryReservations(temporaryResponse.data.items);
+                }
+            } catch (err) {
+                if (isMounted) {
+                    setError('Не удалось загрузить информацию о кортах');
+                    console.error('Error fetching initial data:', err);
+                }
+            }
+        };
+
+        fetchInitialData();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []); // Пустой массив зависимостей - эффект выполнится только при монтировании
+
+    // Загрузка резерваций - выполняется при изменении даты
+    useEffect(() => {
+        let isMounted = true;
+
+        const fetchReservations = async () => {
+            setLoading(true);
+            try {
+                const response = await api.get(`/court_reservations/all/${format(selectedDate, 'yyyy-MM-dd')}`);
+                if (isMounted) {
+                    setReservations(response.data.items);
+                }
+            } catch (err) {
+                if (isMounted) {
+                    setError('Не удалось загрузить информацию о бронированиях');
+                    console.error('Error fetching reservations:', err);
+                }
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        fetchReservations();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [selectedDate]); // Зависимость только от выбранной даты
+
+    const handlePrevWeek = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+        setCurrentWeekStart(subWeeks(currentWeekStart, 1));
+    }, [currentWeekStart]);
+
+    const handleNextWeek = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+        setCurrentWeekStart(addWeeks(currentWeekStart, 1));
+    }, [currentWeekStart]);
+
+    const handleDateSelect = useCallback((date: Date) => {
+        setSelectedDate(date);
+    }, []);
+
+    const handleReservationsUpdate = useCallback((newReservations: Reservation[]) => {
+        setReservations(newReservations);
+    }, []);
 
     if (loading) {
         return (
@@ -155,19 +851,7 @@ const Courts = () => {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center mb-8"
-            >
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                    Теннисные корты
-                </h1>
-                <p className="text-gray-600 dark:text-gray-400">
-                    Забронируйте время для игры
-                </p>
-            </motion.div>
-
+            <StaticHeader />
             <CourtContainer>
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
@@ -177,43 +861,25 @@ const Courts = () => {
                     <CourtImage />
                 </motion.div>
 
-                <CourtsGrid>
-                    {courts.map((court) => (
-                        <CourtCard
-                            key={court.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 }}
-                        >
-                            <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                                    {court.name}
-                                </h2>
-                                <span className="text-lg font-medium text-gray-900 dark:text-white">
-                                    {court.price} ₽/час
-                                </span>
-                            </div>
-                            <p className="text-gray-600 dark:text-gray-400 mb-4">
-                                {court.description}
-                            </p>
-                            <div className="space-y-2">
-                                {generateTimeSlots().map((time) => (
-                                    <TimeSlot
-                                        key={time}
-                                        available={isTimeSlotAvailable(court, time)}
-                                        selected={selectedCourt === court.id && selectedTime === time}
-                                        onClick={() => handleTimeSelect(court.id, time)}
-                                    >
-                                        <span>{time}</span>
-                                        <span>
-                                            {isTimeSlotAvailable(court, time) ? 'Доступно' : 'Занято'}
-                                        </span>
-                                    </TimeSlot>
-                                ))}
-                            </div>
-                        </CourtCard>
-                    ))}
-                </CourtsGrid>
+                <DynamicContent
+                    currentWeekStart={currentWeekStart}
+                    selectedDate={selectedDate}
+                    courts={courts}
+                    reservations={reservations}
+                    currentUser={currentUser}
+                    onDateSelect={handleDateSelect}
+                    onPrevWeek={handlePrevWeek}
+                    onNextWeek={handleNextWeek}
+                    onReservationsUpdate={handleReservationsUpdate}
+                    onTemporaryReservationsUpdate={fetchTemporaryReservations}
+                />
+
+                <TemporaryReservations
+                    courts={courts}
+                    onReservationsUpdate={handleReservationsUpdate}
+                    temporaryReservations={temporaryReservations}
+                    onTemporaryReservationsUpdate={fetchTemporaryReservations}
+                />
             </CourtContainer>
         </div>
     );
