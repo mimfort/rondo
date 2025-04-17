@@ -745,35 +745,33 @@ const Courts = () => {
     const [reservations, setReservations] = useState<Reservation[]>([]);
     const [temporaryReservations, setTemporaryReservations] = useState<Reservation[]>([]);
 
-    // Загрузка временных броней
-    const fetchTemporaryReservations = useCallback(async () => {
-        try {
-            const response = await api.get('/court_reservations/my_temporary_reservations');
-            setTemporaryReservations(response.data.items);
-        } catch (err) {
-            console.error('Error fetching temporary reservations:', err);
-        }
-    }, []);
-
     // Загрузка кортов и временных броней при монтировании
     useEffect(() => {
         let isMounted = true;
 
         const fetchInitialData = async () => {
             try {
-                const [courtsResponse, temporaryResponse] = await Promise.all([
-                    api.get('/courts/'),
-                    api.get('/court_reservations/my_temporary_reservations')
-                ]);
+                // Загружаем корты для всех пользователей
+                const courtsResponse = await api.get('/courts/');
 
                 if (isMounted) {
                     setCourts(courtsResponse.data.items);
-                    setTemporaryReservations(temporaryResponse.data.items);
+                }
+
+                // Загружаем временные брони только для авторизованных пользователей
+                if (currentUser) {
+                    const temporaryResponse = await api.get('/court_reservations/my_temporary_reservations');
+                    if (isMounted) {
+                        setTemporaryReservations(temporaryResponse.data.items);
+                    }
                 }
             } catch (err) {
                 if (isMounted) {
-                    setError('Не удалось загрузить информацию о кортах');
-                    console.error('Error fetching initial data:', err);
+                    // Показываем ошибку только если не удалось загрузить корты
+                    if (err.response?.status !== 401) {
+                        setError('Не удалось загрузить информацию о кортах');
+                        console.error('Error fetching initial data:', err);
+                    }
                 }
             }
         };
@@ -783,7 +781,7 @@ const Courts = () => {
         return () => {
             isMounted = false;
         };
-    }, []); // Пустой массив зависимостей - эффект выполнится только при монтировании
+    }, [currentUser]); // Добавляем currentUser в зависимости
 
     // Загрузка резерваций - выполняется при изменении даты
     useEffect(() => {
@@ -833,6 +831,17 @@ const Courts = () => {
         setReservations(newReservations);
     }, []);
 
+    const handleTemporaryReservationsUpdate = useCallback(async () => {
+        if (currentUser) {
+            try {
+                const response = await api.get('/court_reservations/my_temporary_reservations');
+                setTemporaryReservations(response.data.items);
+            } catch (err) {
+                console.error('Error fetching temporary reservations:', err);
+            }
+        }
+    }, [currentUser]);
+
     if (loading) {
         return (
             <div className="container mx-auto px-4 py-8">
@@ -871,14 +880,14 @@ const Courts = () => {
                     onPrevWeek={handlePrevWeek}
                     onNextWeek={handleNextWeek}
                     onReservationsUpdate={handleReservationsUpdate}
-                    onTemporaryReservationsUpdate={fetchTemporaryReservations}
+                    onTemporaryReservationsUpdate={handleTemporaryReservationsUpdate}
                 />
 
                 <TemporaryReservations
                     courts={courts}
                     onReservationsUpdate={handleReservationsUpdate}
                     temporaryReservations={temporaryReservations}
-                    onTemporaryReservationsUpdate={fetchTemporaryReservations}
+                    onTemporaryReservationsUpdate={handleTemporaryReservationsUpdate}
                 />
             </CourtContainer>
         </div>
