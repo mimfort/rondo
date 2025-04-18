@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/config';
 import { format, addDays, isBefore, startOfToday, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { toast } from 'react-hot-toast';
 
 const CourtContainer = styled.div`
   display: flex;
@@ -371,8 +372,8 @@ const DynamicContent = React.memo(({
     onTemporaryReservationsUpdate: () => Promise<void>;
 }) => {
     const navigate = useNavigate();
-    const [selectedTime, setSelectedTime] = useState<string | null>(null);
-    const [selectedCourt, setSelectedCourt] = useState<number | null>(null);
+    const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
+    const [selectedCourt, setSelectedCourt] = useState<Court | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -443,48 +444,36 @@ const DynamicContent = React.memo(({
         };
     };
 
-    const handleTimeSelect = (courtId: number, time: number) => {
+    const handleTimeSelect = (court: Court, time: number) => {
         if (!currentUser) {
             navigate('/login');
             return;
         }
 
-        const { available } = isTimeSlotAvailable(courtId, time);
+        const { available } = isTimeSlotAvailable(court.id, time);
         if (!available) return;
 
-        setSelectedCourt(courtId);
-        setSelectedTime(time.toString());
+        setSelectedCourt(court);
+        setSelectedTimeSlot(time.toString());
     };
 
-    const handlePayment = async (courtId: number, time: number) => {
-        if (!currentUser) {
-            navigate('/login');
-            return;
-        }
-
-        setIsLoading(true);
-        setError(null);
+    const handlePayment = async () => {
+        if (!selectedTimeSlot || !selectedCourt) return;
 
         try {
-            await api.post('/court_reservations/temporary', {
-                court_id: courtId,
+            setIsLoading(true);
+            const response = await api.post('/court_reservations/temporary', {
+                court_id: selectedCourt.id,
                 date: format(selectedDate, 'yyyy-MM-dd'),
-                time: time
+                time: parseInt(selectedTimeSlot)
             });
 
-            // Обновляем список резерваций
-            const response = await api.get(`/court_reservations/all/${format(selectedDate, 'yyyy-MM-dd')}`);
-            onReservationsUpdate(response.data.items);
+            // Перенаправляем на страницу оплаты
+            window.location.href = response.data.payment_url;
 
-            // Обновляем список временных броней
-            await onTemporaryReservationsUpdate();
-
-            // Сбрасываем выбранное время и корт
-            setSelectedTime(null);
-            setSelectedCourt(null);
-        } catch (err: any) {
-            setError(err.response?.data?.detail || 'Произошла ошибка при создании брони');
-            console.error('Error creating temporary reservation:', err);
+        } catch (error) {
+            console.error('Ошибка при создании временной брони:', error);
+            toast.error('Не удалось создать временную бронь');
         } finally {
             setIsLoading(false);
         }
@@ -539,14 +528,14 @@ const DynamicContent = React.memo(({
                         <div className="space-y-2">
                             {generateTimeSlots().map((time) => {
                                 const { available, isTemporary } = isTimeSlotAvailable(court.id, time);
-                                const isSelected = selectedCourt === court.id && selectedTime === time.toString();
+                                const isSelected = selectedCourt?.id === court.id && selectedTimeSlot === time.toString();
 
                                 return (
                                     <div key={time}>
                                         <TimeSlot
                                             available={available}
                                             selected={isSelected}
-                                            onClick={() => handleTimeSelect(court.id, time)}
+                                            onClick={(e) => handleTimeSelect(court, time)}
                                             style={{
                                                 background: isTemporary ? '#FCD34D' : available ? '#34d399' : '#ef4444'
                                             }}
@@ -558,7 +547,7 @@ const DynamicContent = React.memo(({
                                         </TimeSlot>
                                         {isSelected && (
                                             <PaymentButton
-                                                onClick={() => handlePayment(court.id, time)}
+                                                onClick={handlePayment}
                                                 disabled={isLoading}
                                             >
                                                 {isLoading ? (

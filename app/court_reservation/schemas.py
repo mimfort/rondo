@@ -22,6 +22,9 @@ class CourtReservation_response(CourtReservationBase):
     created_at: datetime
     is_confirmed: bool
 
+class CourtResrvationPayment(BaseModel):
+    payment_url: str
+
     class Config:
         from_attributes = True
 
