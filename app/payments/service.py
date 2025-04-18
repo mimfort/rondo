@@ -37,7 +37,7 @@ def create_payment(amount: float, rental_id: int, url: str, description: str):
         }
     }, rental_id)
     print(rental_signature)
-    return payment.confirmation.confirmation_url
+    return payment.confirmation.confirmation_url, payment.id
 
 
 def verify_rental_signature(rental_id: int, signature: str, secret_key: str) -> bool:

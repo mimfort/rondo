@@ -41,9 +41,11 @@ async def create_temporary_reservation(
     if is_exists:
         raise HTTPException(status_code=400, detail="Время уже занято")
     reservation = await CourtReservationDAO.add(user_id=current_user.id, date=data.date, time=data.time, court_id=data.court_id)
-    payment = create_payment(amount=court.price, rental_id=str(reservation.id), url=f"https://skkrondo.ru/courts", description=f"Оплата бронирования на корт {court.name} {data.date} {data.time}:00")
-    cancel_if_not_confirmed.apply_async((reservation.id,), countdown=200)
-    return {"payment_url": payment}
+    payment = create_payment(amount=court.price, rental_id=reservation.id, url=f"https://skkrondo.ru/courts", description=f"Оплата бронирования на корт {court.name} {data.date} {data.time}:00")
+    await CourtReservationDAO.update(id=reservation.id, field="payment_id", data=payment[1])
+    print(payment[1])
+    cancel_if_not_confirmed.apply_async((reservation.id,), countdown=60*15)
+    return {"payment_url": payment[0]}
      
 
 @router.post("/{reservation_id}/confirm", response_model=CourtReservation_response)
@@ -125,11 +127,10 @@ async def create_by_admin(
 
 @router.post("/yookassa/webhook")
 async def yookassa_webhook(request: Request):
-    body = await request.body()
-    data = json.loads(body)
+    data = await request.json()
+    print(data)
 
-    # Проверяем наличие metadata
-    metadata = data.get("object", {}).get("metadata")
+    metadata = data.get("metadata")
     if not metadata:
         raise HTTPException(status_code=400, detail="Metadata not found")
 
@@ -138,21 +139,12 @@ async def yookassa_webhook(request: Request):
     if not (rental_id and signature):
         raise HTTPException(status_code=400, detail="Invalid metadata")
 
-    # Проверка подписи
-    #if not verify_rental_signature(rental_id, signature, settings.SECRET_KEY):
-        #raise HTTPException(status_code=403, detail="Invalid rental signature")
-
-    # Обработка успешного платежа
-    event = data.get("event")
-    status_ = data.get("object", {}).get("status")
-
-    if event == "payment.waiting_for_capture" and status_ == "waiting_for_capture":
+    status_ = data.get("status")
+    if status_ == "succeeded" or True:
         try:
-            await CourtReservationDAO.update(id=rental_id, field="is_confirmed", data=True)
-            print(f"Payment for rental {rental_id} succeeded.")
+            await CourtReservationDAO.update(id=int(rental_id), field="is_confirmed", data=True)
             return {"status": "ok"}
         except Exception as e:
-            print(f"Error updating reservation: {e}")
             return {"status": "error"}
-    
+
     return {"status": "ignored"}
