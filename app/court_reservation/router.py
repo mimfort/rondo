@@ -128,23 +128,33 @@ async def create_by_admin(
 @router.post("/yookassa/webhook")
 async def yookassa_webhook(request: Request):
     data = await request.json()
-    print(data)
+    print("Получен вебхук от ЮKassa:", data)
 
-    metadata = data.get("metadata")
-    if not metadata:
-        raise HTTPException(status_code=400, detail="Metadata not found")
+    # Проверяем наличие необходимых полей
+    if not data.get("object"):
+        raise HTTPException(status_code=400, detail="Invalid webhook data")
+
+    payment = data["object"]
+    metadata = payment.get("metadata", {})
+    
 
     rental_id = metadata.get("rental_id")
     signature = metadata.get("rental_signature")
+
+    print(rental_id, signature)
+
     if not (rental_id and signature):
         raise HTTPException(status_code=400, detail="Invalid metadata")
 
-    status_ = data.get("status")
-    if status_ == "succeeded" or True:
+    # Обрабатываем разные статусы платежа
+    status = payment.get("status")
+    if status == "succeeded":
         try:
+            print("Статус платежа:succeeded")
             await CourtReservationDAO.update(id=int(rental_id), field="is_confirmed", data=True)
             return {"status": "ok"}
         except Exception as e:
+            print("Ошибка при обновлении статуса бронирования:", e)
             return {"status": "error"}
 
     return {"status": "ignored"}
