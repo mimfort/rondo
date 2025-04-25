@@ -266,7 +266,6 @@ const Main = () => {
                         <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white sm:text-4xl">
                             Свяжитесь с нами
                         </h2>
-
                     </div>
 
                     <div className="mt-12 grid grid-cols-1 gap-8 lg:grid-cols-2">
@@ -274,6 +273,15 @@ const Main = () => {
                         <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 rounded-lg shadow-[0_0_20px_rgba(0,0,0,0.05)] p-8 relative overflow-hidden border border-gray-100 dark:border-gray-700">
                             <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 dark:from-indigo-900/20 dark:to-purple-900/20"></div>
                             <div className="relative space-y-6">
+                                <div>
+                                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">Организация</h3>
+                                    <p className="mt-2 text-gray-600 dark:text-gray-300">
+                                        Муниципальное казенное учреждение культуры «Спортивно-культурный комплекс «Рондо» МО Новодевяткинское сельское поселение Всеволожского муниципального района Ленинградской области
+                                    </p>
+                                    <p className="mt-2 text-gray-600 dark:text-gray-300">
+                                        ИНН: 4706084754 | ОГРН: 1244700035744
+                                    </p>
+                                </div>
                                 <div>
                                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">Адрес</h3>
                                     <p className="mt-2 text-gray-600 dark:text-gray-300">
