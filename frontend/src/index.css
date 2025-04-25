@@ -26,6 +26,14 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.5rem;
+    --background-color: #ffffff;
+    --card-background: #ffffff;
+    --card-background-secondary: #f3f4f6;
+    --button-background: #ffffff;
+    --button-hover: #f3f4f6;
+    --text-color: #1f2937;
+    --text-disabled: #9ca3af;
+    --border-color: #e5e7eb;
   }
 
   .dark {
@@ -48,6 +56,14 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
+    --background-color: #1a1a1a;
+    --card-background: #2d2d2d;
+    --card-background-secondary: #3d3d3d;
+    --button-background: #2d2d2d;
+    --button-hover: #3d3d3d;
+    --text-color: #f3f4f6;
+    --text-disabled: #6b7280;
+    --border-color: #4b5563;
   }
 
   body {

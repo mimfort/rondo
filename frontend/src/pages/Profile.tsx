@@ -151,11 +151,11 @@ const Profile = () => {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                         >
-                            Мои регистрации
+                            Соты
                         </motion.button>
                         <motion.button
                             onClick={() => setActiveTab('courts')}
-                            className={`px-6 py-3 text-base font-medium rounded-xl transition-all duration-200
+                            className={`px-4 sm:px-6 py-3 text-base font-medium rounded-xl transition-all duration-200 whitespace-nowrap
                                 ${activeTab === 'courts' ? 'text-indigo-700 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400'}
                             `}
                             variants={tabVariants}
@@ -163,7 +163,7 @@ const Profile = () => {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                         >
-                            Корт
+                            Корты
                         </motion.button>
                     </div>
                 </div>

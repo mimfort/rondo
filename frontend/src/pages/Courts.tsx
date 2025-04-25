@@ -15,6 +15,8 @@ const CourtContainer = styled.div`
   padding: 1rem;
   max-width: 1200px;
   margin: 0 auto;
+  background: var(--background-color);
+  color: var(--text-color);
 
   @media (max-width: 768px) {
     padding: 0.5rem;
@@ -50,9 +52,9 @@ const DateButton = styled.button<{ isSelected: boolean; isDisabled: boolean }>`
   padding: 0.5rem 1rem;
   border-radius: 0.75rem;
   border: none;
-  background: ${({ isSelected }) => (isSelected ? '#818cf8' : '#fff')};
+  background: ${({ isSelected }) => (isSelected ? '#818cf8' : 'var(--button-background)')};
   color: ${({ isSelected, isDisabled }) =>
-        isDisabled ? '#9CA3AF' : isSelected ? '#fff' : '#1F2937'};
+        isDisabled ? 'var(--text-disabled)' : isSelected ? '#fff' : 'var(--text-color)'};
   cursor: ${({ isDisabled }) => (isDisabled ? 'not-allowed' : 'pointer')};
   opacity: ${({ isDisabled }) => (isDisabled ? 0.5 : 1)};
   transition: all 0.2s ease;
@@ -79,13 +81,14 @@ const CourtsGrid = styled.div`
 `;
 
 const CourtCard = styled(motion.div)`
-  background: white;
+  background: var(--card-background);
   border-radius: 1rem;
   padding: 1.5rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  color: var(--text-color);
 
   @media (max-width: 768px) {
     padding: 1rem;
@@ -148,15 +151,16 @@ const DateNavigationContainer = styled.div`
 `;
 
 const NavigationButton = styled.button`
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: var(--button-background);
+  border: 1px solid var(--border-color);
   border-radius: 0.5rem;
   padding: 0.5rem 1rem;
   cursor: pointer;
   transition: all 0.2s ease;
+  color: var(--text-color);
   
   &:hover {
-    background: #f3f4f6;
+    background: var(--button-hover);
   }
 
   &:disabled {
@@ -168,7 +172,7 @@ const NavigationButton = styled.button`
 const WeekLabel = styled.div`
   font-size: 1.1rem;
   font-weight: 500;
-  color: #374151;
+  color: var(--text-color);
   min-width: 200px;
   text-align: center;
 
@@ -214,9 +218,10 @@ const PaymentButton = styled.button`
 const TemporaryReservationsContainer = styled.div`
   margin-top: 2rem;
   padding: 1.5rem;
-  background: white;
+  background: var(--card-background);
   border-radius: 1rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  color: var(--text-color);
 
   @media (max-width: 768px) {
     padding: 1rem;
@@ -229,9 +234,10 @@ const TemporaryReservationCard = styled.div`
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  background: #f3f4f6;
+  background: var(--card-background-secondary);
   border-radius: 0.75rem;
   margin-bottom: 0.75rem;
+  color: var(--text-color);
   
   @media (max-width: 768px) {
     flex-direction: column;
@@ -339,10 +345,10 @@ const StaticHeader = React.memo(() => (
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-8"
     >
-        <h1 className="text-6xl font-bold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text mb-4">
+        <h1 className="text-6xl font-bold text-[#6D4AFF] mb-4">
             КОРТЫ
         </h1>
-        <p className="text-xl text-gray-600 dark:text-gray-400 font-medium">
+        <p className="text-xl text-gray-600 dark:text-gray-300 font-medium">
             Теннисное пространство
         </p>
     </motion.div>

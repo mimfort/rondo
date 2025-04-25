@@ -151,10 +151,14 @@ async def yookassa_webhook(request: Request):
     if status == "succeeded":
         try:
             print("Статус платежа:succeeded")
-            await CourtReservationDAO.update(id=int(rental_id), field="is_confirmed", data=True)
-            return {"status": "ok"}
+            if verify_rental_signature(rental_id, signature, settings.SECRET_KEY):
+                await CourtReservationDAO.update(id=int(rental_id), field="is_confirmed", data=True)
+                return {"status": "ok"}
+            else:
+                raise HTTPException(status_code=400, detail="Invalid signature")
         except Exception as e:
             print("Ошибка при обновлении статуса бронирования:", e)
             return {"status": "error"}
 
     return {"status": "ignored"}
+
