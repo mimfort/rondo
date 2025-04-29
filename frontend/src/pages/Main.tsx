@@ -332,7 +332,7 @@ const Main = () => {
 
             {/* Developer Contact Section */}
             <motion.div
-                className="py-16 bg-gray-50 dark:bg-gray-900"
+                className="py-16 bg-gradient-to-b from-indigo-50 to-white dark:from-gray-900 dark:to-gray-800"
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
@@ -356,7 +356,6 @@ const Main = () => {
                                 </div>
                                 <div className="text-gray-600 dark:text-gray-400">
                                     <p className="text-sm font-medium">По вопросам работы сайта</p>
-
                                 </div>
                             </div>
                         </a>

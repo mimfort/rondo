@@ -597,31 +597,7 @@ const TemporaryReservations = React.memo(({
     onTemporaryReservationsUpdate: () => Promise<void>;
 }) => {
     const [error, setError] = useState<string | null>(null);
-    const [confirmingId, setConfirmingId] = useState<number | null>(null);
     const [cancelingId, setCancelingId] = useState<number | null>(null);
-
-    const handleConfirmPayment = async (reservationId: number) => {
-        setConfirmingId(reservationId);
-        setError(null);
-
-        try {
-            await api.post(`/court_reservations/${reservationId}/confirm`);
-
-            // Обновляем список временных броней
-            await onTemporaryReservationsUpdate();
-
-            // Обновляем основной список резерваций
-            const date = temporaryReservations.find(r => r.id === reservationId)?.date;
-            if (date) {
-                const response = await api.get(`/court_reservations/all/${date}`);
-                onReservationsUpdate(response.data.items);
-            }
-        } catch (err: any) {
-            setError(err.response?.data?.detail || 'Произошла ошибка при подтверждении оплаты');
-        } finally {
-            setConfirmingId(null);
-        }
-    };
 
     const handleCancelReservation = async (reservationId: number) => {
         setCancelingId(reservationId);
@@ -652,29 +628,29 @@ const TemporaryReservations = React.memo(({
 
     return (
         <TemporaryReservationsContainer>
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                 Ожидают подтверждения оплаты
             </h2>
             {error && (
-                <div className="text-red-500 text-sm mb-4 p-2 bg-red-50 rounded">
+                <div className="text-red-500 text-sm mb-4 p-2 bg-red-50 dark:bg-red-900/20 rounded">
                     {error}
                 </div>
             )}
             <div className="space-y-3">
                 {temporaryReservations.map((reservation) => {
                     const court = courts.find(c => c.id === reservation.court_id);
-                    const isProcessing = confirmingId === reservation.id || cancelingId === reservation.id;
+                    const isProcessing = cancelingId === reservation.id;
 
                     return (
                         <TemporaryReservationCard key={reservation.id}>
                             <div className="flex flex-col gap-1">
-                                <div className="font-medium text-gray-900">
+                                <div className="font-medium text-gray-900 dark:text-white">
                                     {court?.name}
                                 </div>
-                                <div className="text-sm text-gray-600">
+                                <div className="text-sm text-gray-600 dark:text-gray-300">
                                     {format(new Date(reservation.date), 'd MMMM yyyy', { locale: ru })} в {reservation.time}:00
                                 </div>
-                                <div className="text-sm font-medium text-indigo-600">
+                                <div className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
                                     {court?.price} ₽
                                 </div>
                             </div>
@@ -700,27 +676,6 @@ const TemporaryReservations = React.memo(({
                                         </>
                                     )}
                                 </CancelButton>
-                                <ConfirmButton
-                                    onClick={() => handleConfirmPayment(reservation.id)}
-                                    disabled={isProcessing}
-                                >
-                                    {confirmingId === reservation.id ? (
-                                        <>
-                                            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                            </svg>
-                                            Подтверждение...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                            Подтвердить оплату
-                                        </>
-                                    )}
-                                </ConfirmButton>
                             </ButtonGroup>
                         </TemporaryReservationCard>
                     );

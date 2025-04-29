@@ -17,6 +17,7 @@ router = APIRouter(
     prefix="/court_reservations",
     tags=["court_reservations"]
 )
+from yookassa import Configuration, Payment
 
 @router.get("/all/{date}", response_model=ListCourtReservation | None)
 async def get_court_reservations(
@@ -135,30 +136,16 @@ async def yookassa_webhook(request: Request):
         raise HTTPException(status_code=400, detail="Invalid webhook data")
 
     payment = data["object"]
-    metadata = payment.get("metadata", {})
-    
-
-    rental_id = metadata.get("rental_id")
-    signature = metadata.get("rental_signature")
-
-    print(rental_id, signature)
-
-    if not (rental_id and signature):
-        raise HTTPException(status_code=400, detail="Invalid metadata")
-
-    # Обрабатываем разные статусы платежа
-    status = payment.get("status")
-    if status == "succeeded":
-        try:
-            print("Статус платежа:succeeded")
-            if verify_rental_signature(rental_id, signature, settings.SECRET_KEY):
-                await CourtReservationDAO.update(id=int(rental_id), field="is_confirmed", data=True)
-                return {"status": "ok"}
-            else:
-                raise HTTPException(status_code=400, detail="Invalid signature")
-        except Exception as e:
-            print("Ошибка при обновлении статуса бронирования:", e)
-            return {"status": "error"}
-
-    return {"status": "ignored"}
+    try:
+        payment_id = payment.get("id")
+        pay = Payment.find_one(payment_id)
+        payment_data = json.loads(pay.json())
+        if payment_data["status"] != "succeeded":
+            return {"status": "ignored"}
+        rental_id = payment_data["metadata"]["rental_id"]
+        await CourtReservationDAO.update(id=int(rental_id), field="is_confirmed", data=True)
+    except Exception as e:
+        print("Ошибка при получении id и metadata:", e)
+        raise HTTPException(status_code=400, detail="Invalid webhook data")
+        
 
