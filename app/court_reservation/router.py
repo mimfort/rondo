@@ -4,7 +4,7 @@ from app.court_reservation.dao import CourtReservationDAO
 from app.court_reservation.model import CourtReservation
 from app.courts.dao import CourtDAO
 from app.users.model import User
-from app.court_reservation.schemas import ListCourtReservation, CourtReservationCreate, CourtReservationUpdate, CourtReservation_response, CourtReservationCreateByAdmin, CourtResrvationPayment    
+from app.court_reservation.schemas import AdminListCourtReservation, ListCourtReservation, CourtReservationCreate, CourtReservationUpdate, CourtReservation_response, CourtReservationCreateByAdmin, CourtResrvationPayment    
 from app.users.dependencies import get_current_user
 from datetime import date, datetime
 from app.users.dao import UsersDao
@@ -20,6 +20,12 @@ router = APIRouter(
 from yookassa import Configuration, Payment
 
 @router.get("/all/{date}", response_model=ListCourtReservation | None)
+async def get_court_reservations(
+    date: date):
+    courts_reservations = await CourtReservationDAO.find_all(date=date)
+    return {"items": courts_reservations, "total": len(courts_reservations)}
+
+@router.get("/all_admin/{date}", response_model=AdminListCourtReservation | None)
 async def get_court_reservations(
     date: date):
     courts_reservations = await CourtReservationDAO.find_all(date=date)
@@ -57,7 +63,7 @@ async def confirm_reservation(
     reservation = await CourtReservationDAO.find_one_or_none(id=reservation_id)
     if not reservation:
         raise HTTPException(status_code=404, detail="Бронирование не найдено")
-    if reservation.user_id != current_user.id:
+    if current_user.admin_status != "admin":
         raise HTTPException(status_code=403, detail="Недостаточно прав")
     if reservation.is_confirmed == True:
         raise HTTPException(status_code=409, detail="Оплата уже подтверждена")

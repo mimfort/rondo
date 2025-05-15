@@ -34,6 +34,7 @@ import AdminRoute from './components/AdminRoute';
 import Coworking from './pages/Coworking';
 import Courts from './pages/Courts';
 import CourtsAdmin from './pages/admin/CourtsAdmin';
+import CourtReservationsAdmin from './pages/admin/CourtReservationsAdmin';
 
 const Layout = () => {
     return (
@@ -73,6 +74,7 @@ const router = createBrowserRouter(
                 <Route path="events" element={<AdminEvents />} />
                 <Route path="coworking" element={<AdminCoworking />} />
                 <Route path="courts" element={<CourtsAdmin />} />
+                <Route path="court-reservations" element={<CourtReservationsAdmin />} />
             </Route>
             <Route path="login" element={<PageTransition><Login /></PageTransition>} />
             <Route path="register" element={<PageTransition><Register /></PageTransition>} />
@@ -100,4 +102,4 @@ const App: React.FC = () => {
     return <RouterProvider router={router} />;
 };
 
-export default App; 
+export default App;
