@@ -48,7 +48,7 @@ async def create_temporary_reservation(
     if is_exists:
         raise HTTPException(status_code=400, detail="Время уже занято")
     reservation = await CourtReservationDAO.add(user_id=current_user.id, date=data.date, time=data.time, court_id=data.court_id)
-    payment = create_payment(amount=court.price, rental_id=reservation.id, url=f"https://skkrondo.ru/courts", description=f"Оплата бронирования на корт {court.name} {data.date} {data.time}:00")
+    payment = create_payment(amount=court.price, rental_id=reservation.id, url=f"https://skkrondo.ru/courts", description=f"Оплата бронирования на корт {court.name} {data.date} {data.time}:00", email=current_user.email)
     await CourtReservationDAO.update(id=reservation.id, field="payment_id", data=payment[1])
     print(payment[1])
     cancel_if_not_confirmed.apply_async((reservation.id,), countdown=60*15)

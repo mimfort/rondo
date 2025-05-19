@@ -2,6 +2,8 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 from datetime import date
+from pydantic import BaseModel, field_validator
+from datetime import datetime, timedelta
 class CourtReservationBase(BaseModel):
     court_id: int
     date: date
@@ -18,14 +20,24 @@ class CourtReservationUpdate(BaseModel):
 
 class UserInfo(BaseModel):
     email: str
-    last_name: str
-    first_name: str
+    last_name: str|None
+    first_name: str|None
 
 class CourtReservation_response(CourtReservationBase):
     id: int
     user_id: int
     created_at: datetime
     is_confirmed: bool
+    @field_validator("created_at", mode="before")
+    def adjust_created_at(cls, value):
+        """Добавляет смещение +3 часа к created_at."""
+        if isinstance(value, datetime):
+            return value + timedelta(hours=3)
+        return value
+
+    class Config:
+        from_attributes = True
+
 
 
 class AdminCourtReservationresponse(CourtReservationBase):
@@ -34,6 +46,13 @@ class AdminCourtReservationresponse(CourtReservationBase):
     created_at: datetime
     is_confirmed: bool
     user: UserInfo
+    @field_validator("created_at", mode="before")
+    def adjust_created_at(cls, value):
+        """Добавляет смещение +3 часа к created_at."""
+        if isinstance(value, datetime):
+            return value + timedelta(hours=3)
+        return value
+
     class Config:
         from_attributes = True
   

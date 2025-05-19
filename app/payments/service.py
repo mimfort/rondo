@@ -14,7 +14,7 @@ Configuration.account_id = settings.shop_idd
 Configuration.secret_key = settings.shop_secret
 
 
-def create_payment(amount: float, rental_id: int, url: str, description: str):
+def create_payment(amount: float, rental_id: int, url: str, description: str, email: str):
     rental_signature = generate_secure_rental_id(str(rental_id), YOUR_SECRET_KEY)
 
     payment = Payment.create({
@@ -22,9 +22,30 @@ def create_payment(amount: float, rental_id: int, url: str, description: str):
             "value": f"{amount:.2f}",
             "currency": "RUB"
         },
-        "payment_method_data": {
-      "type": "bank_card"
+        "receipt": {
+            "customer": {
+                "email": email
         },
+        "items": [
+            {
+                "description": description,
+                "quantity": 1,
+                "amount": {
+                    "value": f"{amount:.2f}",
+                    "currency": "RUB"
+                },
+                "vat_code": 1,
+                "measure": "hour",
+                "payment_mode": "full_payment",
+                "payment_subject": "service",
+                
+               
+            }
+        ]
+        },
+    #     "payment_method_data": {
+    #   "type": "bank_card"
+    #     },
         "confirmation": {
             "type": "redirect",
             "return_url": url
@@ -36,7 +57,6 @@ def create_payment(amount: float, rental_id: int, url: str, description: str):
             "rental_signature": rental_signature
         }
     }, rental_id)
-    print(rental_signature)
     return payment.confirmation.confirmation_url, payment.id
 
 

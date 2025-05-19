@@ -456,6 +456,11 @@ const DynamicContent = React.memo(({
             return;
         }
 
+        if (!court.is_available) {
+            toast.error('Этот корт недоступен для бронирования.');
+            return;
+        }
+
         const { available } = isTimeSlotAvailable(court.id, time);
         if (!available) return;
 
@@ -844,4 +849,4 @@ const Courts = () => {
     );
 };
 
-export default Courts; 
+export default Courts;
