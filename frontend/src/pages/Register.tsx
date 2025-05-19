@@ -155,6 +155,14 @@ const Register = () => {
                     <div className="flex flex-col">
                         <label className="text-sm text-gray-700 dark:text-gray-300">
                             Я согласен на обработку персональных данных
+                            <a
+                                href="/privacy-policy"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-indigo-600 hover:underline ml-1"
+                            >
+                                (Подробнее)
+                            </a>
                         </label>
                         {errors.personalDataConsent && (
                             <p className="mt-1 text-sm text-red-600 dark:text-red-400">
@@ -168,4 +176,4 @@ const Register = () => {
     );
 };
 
-export default Register; 
+export default Register;

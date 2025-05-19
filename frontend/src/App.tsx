@@ -35,6 +35,7 @@ import Coworking from './pages/Coworking';
 import Courts from './pages/Courts';
 import CourtsAdmin from './pages/admin/CourtsAdmin';
 import CourtReservationsAdmin from './pages/admin/CourtReservationsAdmin';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 
 const Layout = () => {
     return (
@@ -80,6 +81,7 @@ const router = createBrowserRouter(
             <Route path="register" element={<PageTransition><Register /></PageTransition>} />
             <Route path="forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
             <Route path="reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
+            <Route path="privacy-policy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
             <Route path="*" element={<Navigate to="/" />} />
         </Route>
     ),

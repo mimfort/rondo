@@ -407,7 +407,8 @@ const DynamicContent = React.memo(({
 
         for (let i = 0; i < 7; i++) {
             const date = addDays(currentWeekStart, i);
-            const isDisabled = isBefore(date, today) && !format(date, 'yyyy-MM-dd').includes(format(today, 'yyyy-MM-dd'));
+            const maxDate = addDays(today, 7); // Максимальная дата - через неделю от сегодня
+            const isDisabled = isBefore(date, today) || isBefore(maxDate, date); // Отключаем даты в прошлом и за пределами недели
 
             buttons.push(
                 <DateButton
