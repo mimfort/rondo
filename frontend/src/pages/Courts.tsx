@@ -426,7 +426,7 @@ const DynamicContent = React.memo(({
 
     const generateTimeSlots = () => {
         const slots = [];
-        for (let hour = 10; hour <= 21; hour++) {
+        for (let hour = 9; hour <= 20; hour++) {
             slots.push(hour);
         }
         return slots;
