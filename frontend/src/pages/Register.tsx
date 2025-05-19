@@ -10,6 +10,7 @@ interface RegisterForm {
     email: string;
     password: string;
     personalDataConsent: boolean;
+    publicOfferConsent: boolean;
 }
 
 const Register = () => {
@@ -32,7 +33,7 @@ const Register = () => {
     });
 
     const onSubmit = (data: RegisterForm) => {
-        if (!data.personalDataConsent) {
+        if (!data.personalDataConsent || !data.publicOfferConsent) {
             return;
         }
         registerMutation.mutate(data);
@@ -167,6 +168,36 @@ const Register = () => {
                         {errors.personalDataConsent && (
                             <p className="mt-1 text-sm text-red-600 dark:text-red-400">
                                 {errors.personalDataConsent.message}
+                            </p>
+                        )}
+                    </div>
+                </div>
+
+                <div className="flex items-start space-x-3">
+                    <div className="flex items-center h-5">
+                        <input
+                            {...register('publicOfferConsent', {
+                                required: 'Необходимо согласие с публичной офертой'
+                            })}
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700"
+                        />
+                    </div>
+                    <div className="flex flex-col">
+                        <label className="text-sm text-gray-700 dark:text-gray-300">
+                            Я принимаю условия публичной оферты
+                            <a
+                                href="/public-offer"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-indigo-600 hover:underline ml-1"
+                            >
+                                (Подробнее)
+                            </a>
+                        </label>
+                        {errors.publicOfferConsent && (
+                            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                                {errors.publicOfferConsent.message}
                             </p>
                         )}
                     </div>

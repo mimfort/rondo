@@ -36,6 +36,7 @@ import Courts from './pages/Courts';
 import CourtsAdmin from './pages/admin/CourtsAdmin';
 import CourtReservationsAdmin from './pages/admin/CourtReservationsAdmin';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import PublicOffer from './pages/PublicOffer';
 
 const Layout = () => {
     return (
@@ -82,6 +83,7 @@ const router = createBrowserRouter(
             <Route path="forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
             <Route path="reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
             <Route path="privacy-policy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
+            <Route path="public-offer" element={<PageTransition><PublicOffer /></PageTransition>} />
             <Route path="*" element={<Navigate to="/" />} />
         </Route>
     ),
