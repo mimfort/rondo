@@ -95,14 +95,22 @@ const CourtReservationsAdmin: React.FC = () => {
                                     <div className="flex space-x-2">
                                         {!reservation.is_confirmed && (
                                             <button
-                                                onClick={() => confirmReservationMutation.mutate(reservation.id)}
+                                                onClick={() => {
+                                                    if (window.confirm('Вы уверены, что хотите подтвердить бронирование?')) {
+                                                        confirmReservationMutation.mutate(reservation.id);
+                                                    }
+                                                }}
                                                 className="btn-primary"
                                             >
                                                 Подтвердить
                                             </button>
                                         )}
                                         <button
-                                            onClick={() => cancelReservationMutation.mutate(reservation.id)}
+                                            onClick={() => {
+                                                if (window.confirm('Вы уверены, что хотите отменить бронирование?')) {
+                                                    cancelReservationMutation.mutate(reservation.id);
+                                                }
+                                            }}
                                             className="btn-danger"
                                         >
                                             Отменить

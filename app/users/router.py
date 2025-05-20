@@ -58,7 +58,7 @@ async def login(response: Response, auth_model: UserAuthResponse):
         cookie = create_access_token({"sub": str(user.id)})
 
         response.set_cookie("_user_cookie", cookie, httponly=True)
-        send_login_email.delay(to=user.email, username=user.username)
+        # send_login_email.delay(to=user.email, username=user.username)
         return "Вы вошли в свою учетную запись"
     return "Вы не смогли войти в аккаунт"
 

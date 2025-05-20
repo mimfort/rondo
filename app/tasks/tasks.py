@@ -33,10 +33,12 @@ def send_welcome_email(to: str, username: str):
         msg["Subject"] = "Добро пожаловать!"
 
         body = f"""
-        <h1>Привет, {username}!</h1>
-        <p>Спасибо за регистрацию.</p>
-        <p>С уважением,  
-        <br>Команда Рондо</p>
+        <h1 style='font-size: 24px; color: #4F46E5;'>Привет, {username}!</h1>
+        <p style='font-size: 16px; color: #333;'>Спасибо за регистрацию на платформе <strong>Рондо</strong>.</p>
+        <p style='font-size: 16px; color: #333;'>Мы рады приветствовать вас в нашем сообществе.</p>
+        <p style='font-size: 16px; color: #333;'>С уважением,<br>Команда Рондо</p>
+        <hr style='border: none; border-top: 1px solid #ddd; margin: 20px 0;'>
+        <p style='font-size: 14px; color: #666;'>Если у вас есть вопросы, напишите нам на почту <a href='mailto:sport@skkrondo.ru' style='color: #4F46E5;'>sport@skkrondo.ru</a>.</p>
         """
         msg.attach(MIMEText(body, "html"))
 
@@ -98,11 +100,12 @@ def send_about_registration(
         msg["Subject"] = "Регистрация на ивент"
 
         body = f"""
-        <h1>Привет, {username}!</h1>  
-        <p>Вы записались на ивент: {event_name}</p>  
-        <p>Начало: {SpecialConvert.format_datetime_moscow(time_start)}</p>
-        <p>С уважением,  
-        <br>Команда Рондо</p>
+        <h1 style='font-size: 24px; color: #4F46E5;'>Привет, {username}!</h1>
+        <p style='font-size: 16px; color: #333;'>Вы записались на мероприятие: <strong>{event_name}</strong>.</p>
+        <p style='font-size: 16px; color: #333;'>Начало: <strong>{SpecialConvert.format_datetime_moscow(time_start)}</strong>.</p>
+        <p style='font-size: 16px; color: #333;'>С уважением,<br>Команда Рондо</p>
+        <hr style='border: none; border-top: 1px solid #ddd; margin: 20px 0;'>
+        <p style='font-size: 14px; color: #666;'>Если у вас есть вопросы, напишите нам на почту <a href='mailto:sport@skkrondo.ru' style='color: #4F46E5;'>sport@skkrondo.ru</a>.</p>
         """
         msg.attach(MIMEText(body, "html"))
         with smtplib.SMTP_SSL(smtp_server, smtp_port) as server:
@@ -112,6 +115,44 @@ def send_about_registration(
     except Exception as e:
         logger.error(f"Ошибка {str(e)}")
         return {"status": "error", "message": str(e)}
+
+@celery.task(name="send_about_registration_on_court")
+def send_about_registration_on_court(
+    to: str, name: str, last_name:str, court: str, time_start: str
+):
+    try:
+        smtp_server = celery.conf.smtp_server
+        smtp_port = celery.conf.smtp_port
+        smtp_username = celery.conf.smtp_username
+        smtp_password = celery.conf.smtp_password
+        email_from = celery.conf.email_from
+
+        msg = MIMEMultipart()
+        msg["From"] = email_from
+        msg["To"] = to
+        msg["Subject"] = "Аренда корта"
+
+        body = f"""
+        <h1 style='font-size: 24px; color: #4F46E5;'>Здравствуйте, {name} {last_name}!</h1>
+        <p style='font-size: 16px; color: #333;'>Вы успешно оплатили аренду корта: <strong>{court}</strong>.</p>
+        <p style='font-size: 16px; color: #333;'>Начало аренды: <strong>{time_start}:00</strong>.</p>
+        <p style='font-size: 16px; color: #333;'>Пожалуйста, приходите в спортклуб заранее, но не раньше чем за 30 минут до начала аренды.</p>
+        <p style='font-size: 16px; color: #333;'>Не забудьте взять с собой паспорт, он может понадобиться.</p>
+        <p style='font-size: 16px; color: #333;'>Открыть в <a href='https://yandex.ru/maps/org/sportklub/223304769850?si=v7e134bvyxheyktxjcp8a29rwr' target='_blank' style='color: #4F46E5;'>Яндекс.Картах</a>.</p>
+        <p style='font-size: 16px; color: #333;'>Координаты спортклуба: 60.054253, 30.476051</p>
+        <p style='font-size: 16px; color: #333;'>С уважением,<br>Команда Рондо</p>
+        <hr style='border: none; border-top: 1px solid #ddd; margin: 20px 0;'>
+        <p style='font-size: 14px; color: #666;'>Пожалуйста, не отвечайте на это письмо, оно отправлено автоматически. Если у вас есть вопросы, напишите нам на почту <a href='mailto:sport@skkrondo.ru' style='color: #4F46E5;'>sport@skkrondo.ru</a>.</p>
+        """
+        msg.attach(MIMEText(body, "html"))
+        with smtplib.SMTP_SSL(smtp_server, smtp_port) as server:
+            server.login(smtp_username, smtp_password)
+            server.send_message(msg)
+        return {"status": "success"}
+    except Exception as e:
+        logger.error(f"Ошибка {str(e)}")
+        return {"status": "error", "message": str(e)}
+
 
 @celery.task(name="send_about_new_event")
 def send_about_new_event(
@@ -130,11 +171,12 @@ def send_about_new_event(
         msg["Subject"] = "Появилось новое мероприятие"
 
         body = f"""
-        <h1>Привет, {username}!</h1>  
-        <p>Появилось новое мероприятие: {event_name}</p>  
-        <p>Начало: {SpecialConvert.format_datetime_moscow(time_start)}</p>
-        <p>С уважением,  
-        <br>Команда Рондо</p>
+        <h1 style='font-size: 24px; color: #4F46E5;'>Привет, {username}!</h1>
+        <p style='font-size: 16px; color: #333;'>Появилось новое мероприятие: <strong>{event_name}</strong>.</p>
+        <p style='font-size: 16px; color: #333;'>Начало: <strong>{SpecialConvert.format_datetime_moscow(time_start)}</strong>.</p>
+        <p style='font-size: 16px; color: #333;'>С уважением,<br>Команда Рондо</p>
+        <hr style='border: none; border-top: 1px solid #ddd; margin: 20px 0;'>
+        <p style='font-size: 14px; color: #666;'>Если у вас есть вопросы, напишите нам на почту <a href='mailto:sport@skkrondo.ru' style='color: #4F46E5;'>sport@skkrondo.ru</a>.</p>
         """
         msg.attach(MIMEText(body, "html"))
         with smtplib.SMTP_SSL(smtp_server, smtp_port) as server:
@@ -163,10 +205,12 @@ def send_confirm_email(
         token = generate_confirmation_token(to)
         confirm_url = f"{link_api}/users/confirm/{token}"
         body = f"""
-        <h1>Привет, {username}!</h1>  
-        <p>Подтвердите свою почту, перейдя по ссылке: {confirm_url}</p>  
-        <p>С уважением,  
-        <br>Команда Рондо</p>
+        <h1 style='font-size: 24px; color: #4F46E5;'>Привет, {username}!</h1>
+        <p style='font-size: 16px; color: #333;'>Подтвердите свою почту, перейдя по ссылке ниже:</p>
+        <p style='font-size: 16px; color: #4F46E5;'><a href='{confirm_url}' target='_blank' style='color: #4F46E5;'>Подтвердить почту</a></p>
+        <p style='font-size: 16px; color: #333;'>С уважением,<br>Команда Рондо</p>
+        <hr style='border: none; border-top: 1px solid #ddd; margin: 20px 0;'>
+        <p style='font-size: 14px; color: #666;'>Если у вас есть вопросы, напишите нам на почту <a href='mailto:sport@skkrondo.ru' style='color: #4F46E5;'>sport@skkrondo.ru</a>.</p>
         """
         msg.attach(MIMEText(body, "html"))
         with smtplib.SMTP_SSL(smtp_server, smtp_port) as server:
@@ -194,10 +238,13 @@ def send_forgot_password_email(
         msg["Subject"] = "Сброс пароля"
         confirm_url = f"{link_front}/reset-password?token={token}"
         body = f"""
-        <h1>Привет, {username}!</h1>  
-        <p>Сброс пароля, перейдите по ссылке: {confirm_url}</p>  
-        <p>С уважением,  
-        <br>Команда Рондо</p>
+        <h1 style='font-size: 24px; color: #4F46E5;'>Привет, {username}!</h1>
+        <p style='font-size: 16px; color: #333;'>Вы запросили сброс пароля. Для продолжения перейдите по ссылке ниже:</p>
+        <p style='font-size: 16px;'><a href='{confirm_url}' target='_blank' style='color: #4F46E5;'>Сбросить пароль</a></p>
+        <p style='font-size: 16px; color: #333;'>Если вы не запрашивали сброс пароля, просто проигнорируйте это письмо.</p>
+        <p style='font-size: 16px; color: #333;'>С уважением,<br>Команда Рондо</p>
+        <hr style='border: none; border-top: 1px solid #ddd; margin: 20px 0;'>
+        <p style='font-size: 14px; color: #666;'>Если у вас есть вопросы, напишите нам на почту <a href='mailto:sport@skkrondo.ru' style='color: #4F46E5;'>sport@skkrondo.ru</a>.</p>
         """
         msg.attach(MIMEText(body, "html"))
         with smtplib.SMTP_SSL(smtp_server, smtp_port) as server:

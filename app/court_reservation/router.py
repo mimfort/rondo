@@ -8,7 +8,7 @@ from app.court_reservation.schemas import AdminListCourtReservation, ListCourtRe
 from app.users.dependencies import get_current_user
 from datetime import date, datetime
 from app.users.dao import UsersDao
-from app.tasks.tasks import cancel_if_not_confirmed
+from app.tasks.tasks import cancel_if_not_confirmed, send_about_registration_on_court
 from datetime import date
 from app.payments.service import create_payment, verify_rental_signature
 import json
@@ -37,8 +37,8 @@ async def create_temporary_reservation(
     data: CourtReservationCreate,
     current_user: User = Depends(get_current_user)
 ):
-    if data.time < 10 or data.time > 21:
-        raise HTTPException(status_code=400, detail="Время должно быть в диапазоне от 10 до 21")
+    if data.time < 9 or data.time > 20:
+        raise HTTPException(status_code=400, detail="Время должно быть в диапазоне от 9 до 20")
     if data.date < date.today():
         raise HTTPException(status_code=400, detail="Дата должна быть больше текущей")
     court = await CourtDAO.find_one_or_none(id=data.court_id)
@@ -47,6 +47,8 @@ async def create_temporary_reservation(
     is_exists = await CourtReservationDAO.find_one_or_none(date=data.date, time=data.time, court_id=data.court_id)
     if is_exists:
         raise HTTPException(status_code=400, detail="Время уже занято")
+    if current_user.first_name == None or current_user.last_name == None or current_user.first_name == "" or current_user.last_name == "":
+        raise HTTPException(status_code=400, detail="Укажите имя и фамилию в профиле")
     reservation = await CourtReservationDAO.add(user_id=current_user.id, date=data.date, time=data.time, court_id=data.court_id)
     payment = create_payment(amount=court.price, rental_id=reservation.id, url=f"https://skkrondo.ru/courts", description=f"Оплата бронирования на корт {court.name} {data.date} {data.time}:00", email=current_user.email)
     await CourtReservationDAO.update(id=reservation.id, field="payment_id", data=payment[1])
@@ -68,6 +70,7 @@ async def confirm_reservation(
     if reservation.is_confirmed == True:
         raise HTTPException(status_code=409, detail="Оплата уже подтверждена")
     result = await CourtReservationDAO.update(id=reservation_id, field="is_confirmed", data=True)
+    send_about_registration_on_court.delay(to=reservation.user.email, name=reservation.user.first_name, last_name = reservation.user.last_name,  court=reservation.court.name, time_start=reservation.time)
     return result
 @router.get("/my_reservations", response_model=ListCourtReservation)
 async def get_my_reservations(
@@ -149,7 +152,9 @@ async def yookassa_webhook(request: Request):
         if payment_data["status"] != "succeeded":
             return {"status": "ignored"}
         rental_id = payment_data["metadata"]["rental_id"]
-        await CourtReservationDAO.update(id=int(rental_id), field="is_confirmed", data=True)
+        reservation = await CourtReservationDAO.update(id=int(rental_id), field="is_confirmed", data=True)
+        send_about_registration_on_court.delay(to=reservation.user.email, name=reservation.user.first_name, last_name = reservation.user.last_name,  court=reservation.court.name, time_start=reservation.time)
+        return {"status": "success"}
     except Exception as e:
         print("Ошибка при получении id и metadata:", e)
         raise HTTPException(status_code=400, detail="Invalid webhook data")

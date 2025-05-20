@@ -483,9 +483,13 @@ const DynamicContent = React.memo(({
             // Перенаправляем на страницу оплаты
             window.location.href = response.data.payment_url;
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('Ошибка при создании временной брони:', error);
-            toast.error('Не удалось создать временную бронь');
+            if (error.response?.data?.detail === 'Укажите имя и фамилию в профиле') {
+                toast.error('Пожалуйста, укажите имя и фамилию в вашем профиле.');
+            } else {
+                toast.error('Не удалось создать временную бронь');
+            }
         } finally {
             setIsLoading(false);
         }
