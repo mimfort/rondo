@@ -34,6 +34,7 @@ dependencies = [
     "gunicorn==21.2.0",
     "asgiref>=3.8.1",
     "yookassa>=3.5.0",
+    "requests>=2.32.3",
 ]
 [tool.ruff]
 line-length = 88  

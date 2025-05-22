@@ -30,6 +30,8 @@ class Settings(BaseSettings):
     EMAIL_FROM: str
     shop_idd: str
     shop_secret: str
+    TELEGRAM_TOKEN : str
+    TELEGRAM_CHAT_ID: str
     model_config = SettingsConfigDict(env_file=".env")
 
 

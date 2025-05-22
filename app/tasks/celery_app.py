@@ -23,4 +23,6 @@ celery.conf.update(
     worker_prefetch_multiplier=1,
     task_ignore_result=True,
     task_store_errors_even_if_ignored=True,
+    telegram_token=settings.TELEGRAM_TOKEN,
+    telegram_chat_id=settings.TELEGRAM_CHAT_ID
 )

@@ -22,9 +22,11 @@ class BaseDAO:
             return result.scalars().one_or_none()
 
     @classmethod
-    async def find_all(cls, **filter_by):
+    async def find_all(cls, order_by=None, **filter_by):
         async with async_session_maker() as session:
             query = select(cls.model).filter_by(**filter_by)
+            if order_by:
+                query = query.order_by(order_by)
             result = await session.execute(query)
             return result.scalars().all()
 

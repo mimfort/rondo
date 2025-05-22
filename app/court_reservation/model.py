@@ -14,6 +14,7 @@ class CourtReservation(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     is_confirmed = Column(Boolean, default=False)
     payment_id = Column(String, nullable=True)
+    is_social = Column(Boolean, default=False, nullable=True)
     court = relationship("Court", back_populates="reservations", lazy="selectin")
     user = relationship("User", back_populates="court_reservations", lazy="selectin")
 

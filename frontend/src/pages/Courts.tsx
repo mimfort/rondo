@@ -7,6 +7,13 @@ import api from '../api/config';
 import { format, addDays, isBefore, startOfToday, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { toast } from 'react-hot-toast';
+import image1 from '../assets/photoCourts/1.jpg';
+import image2 from '../assets/photoCourts/2.jpg';
+import image3 from '../assets/photoCourts/3.jpg';
+import image4 from '../assets/photoCourts/4.jpg';
+import image5 from '../assets/photoCourts/5.jpg';
+import image6 from '../assets/photoCourts/6.jpg';
+import TelegramDarkLightIcon from '../assets/icons/telegram-dark-light.svg';
 
 const CourtContainer = styled.div`
   display: flex;
@@ -35,6 +42,11 @@ const DateSlider = styled.div`
   justify-content: center;
   width: 100%;
   max-width: 600px;
+  background: var(--card-background);
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+
   &::-webkit-scrollbar {
     display: none;
   }
@@ -60,7 +72,14 @@ const DateButton = styled.button<{ isSelected: boolean; isDisabled: boolean }>`
   transition: all 0.2s ease;
   min-width: 80px;
   text-align: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-weight: bold;
+  font-size: 1rem;
+
+  &:hover {
+    background: ${({ isSelected }) => (isSelected ? '#6d4aff' : '#e5e7eb')};
+    transform: translateY(-2px);
+  }
 
   @media (max-width: 768px) {
     min-width: 60px;
@@ -84,11 +103,20 @@ const CourtCard = styled(motion.div)`
   background: var(--card-background);
   border-radius: 1rem;
   padding: 1.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 10px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
   color: var(--text-color);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
 
   @media (max-width: 768px) {
     padding: 1rem;
@@ -108,19 +136,12 @@ const TimeSlot = styled.div<{ available: boolean; selected: boolean }>`
   transition: all 0.2s ease;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  font-weight: 500;
-
-  @media (max-width: 768px) {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.9rem;
-  }
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Добавлена тень */
 `;
 
 const CourtImage = styled.div`
   width: 100%;
   height: 300px;
-  background-image: url('https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');
   background-size: cover;
   background-position: center;
   border-radius: 1rem;
@@ -129,6 +150,25 @@ const CourtImage = styled.div`
   @media (max-width: 768px) {
     height: 200px;
     border-radius: 0.75rem;
+  }
+`;
+
+const CarouselContainer = styled.div`
+  margin-top: 2rem;
+  .swiper {
+    width: 100%;
+    height: 300px;
+  }
+  .swiper-slide {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 1rem;
   }
 `;
 
@@ -197,10 +237,11 @@ const PaymentButton = styled.button`
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  font-size: 1.1rem;
 
   &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px -2px rgba(0, 0, 0, 0.1);
   }
 
   &:disabled {
@@ -211,7 +252,7 @@ const PaymentButton = styled.button`
 
   @media (max-width: 768px) {
     padding: 0.6rem 1.25rem;
-    font-size: 0.9rem;
+    font-size: 1rem;
   }
 `;
 
@@ -320,6 +361,66 @@ const ConfirmButton = styled.button`
   }
 `;
 
+const TelegramLink = styled.a`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  color: var(--text-color);
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: var(--primary-color);
+  }
+
+  img {
+    width: 24px;
+    height: 24px;
+    filter: invert(0); /* Светлая тема */
+  }
+
+  @media (prefers-color-scheme: dark) {
+    img {
+      filter: invert(1); /* Тёмная тема */
+    }
+  }
+`;
+
+const AdminContact = styled.div`
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: var(--text-color);
+  text-align: center;
+
+  a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: var(--primary-hover-color);
+    }
+  }
+`;
+
+const Footer = styled.footer`
+  margin-top: 2rem;
+  padding: 1rem;
+  text-align: center;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.9rem;
+  color: var(--text-color);
+  background-color: var(--background-color);
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+  }
+`;
+
 interface Court {
     id: number;
     name: string;
@@ -337,22 +438,64 @@ interface Reservation {
     user_id: number;
     created_at: string;
     is_confirmed: boolean;
+    is_social?: boolean;
 }
 
-const StaticHeader = React.memo(() => (
-    <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-8"
-    >
-        <h1 className="text-6xl font-bold text-[#6D4AFF] mb-4">
-            КОРТЫ
-        </h1>
-        <p className="text-xl text-gray-600 dark:text-gray-300 font-medium">
-            Теннисное пространство
-        </p>
-    </motion.div>
-));
+const StaticHeader = React.memo(() => {
+    const [selectedImage, setSelectedImage] = useState(image1);
+    const images = [image1, image2, image3, image4, image5, image6];
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setSelectedImage((prevImage) => {
+                const currentIndex = images.indexOf(prevImage);
+                const nextIndex = (currentIndex + 1) % images.length;
+                return images[nextIndex];
+            });
+        }, 3000); // Меняем изображение каждые 3 секунды
+
+        return () => clearInterval(interval);
+    }, [images]);
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-8"
+        >
+            <h1 className="text-6xl font-extrabold text-[#6D4AFF] mb-4">
+                КОРТЫ
+            </h1>
+            <p className="text-xl text-gray-600 dark:text-gray-300 font-medium">
+                Аренда теннисных кортов
+            </p>
+            <div className="mt-8">
+                <div className="flex justify-center mb-4">
+                    <img
+                        src={selectedImage}
+                        alt="Выбранное изображение"
+                        className="rounded-lg shadow-lg w-full max-w-3xl h-auto object-cover"
+                    />
+                </div>
+                <div className="flex justify-center gap-2 flex-wrap">
+                    {images.map((image, index) => (
+                        <button
+                            key={index}
+                            className="focus:outline-none"
+                            onClick={() => setSelectedImage(image)}
+                        >
+                            <img
+                                src={image}
+                                alt={`Корт ${index}`}
+                                className={`rounded-lg shadow-md w-20 h-20 object-cover transition-transform duration-300 ${selectedImage === image ? 'ring-4 ring-indigo-500 scale-105' : ''}`}
+                            />
+                        </button>
+                    ))}
+                </div>
+            </div>
+        </motion.div>
+    );
+});
 
 const DynamicContent = React.memo(({
     currentWeekStart,
@@ -441,13 +584,15 @@ const DynamicContent = React.memo(({
         if (reservation) {
             return {
                 available: false,
-                isTemporary: !reservation.is_confirmed
+                isTemporary: !reservation.is_confirmed,
+                isSocial: reservation.is_social === true
             };
         }
 
         return {
             available: true,
-            isTemporary: false
+            isTemporary: false,
+            isSocial: false
         };
     };
 
@@ -543,7 +688,7 @@ const DynamicContent = React.memo(({
                         </p>
                         <div className="space-y-2">
                             {generateTimeSlots().map((time) => {
-                                const { available, isTemporary } = isTimeSlotAvailable(court.id, time);
+                                const { available, isTemporary, isSocial } = isTimeSlotAvailable(court.id, time);
                                 const isSelected = selectedCourt?.id === court.id && selectedTimeSlot === time.toString();
 
                                 return (
@@ -553,12 +698,12 @@ const DynamicContent = React.memo(({
                                             selected={isSelected}
                                             onClick={(e) => handleTimeSelect(court, time)}
                                             style={{
-                                                background: isTemporary ? '#FCD34D' : available ? '#34d399' : '#ef4444'
+                                                background: isSocial ? '#3B82F6' : isTemporary ? '#FCD34D' : available ? '#34d399' : '#ef4444'
                                             }}
                                         >
                                             <span>{`${time}:00`}</span>
                                             <span>
-                                                {isTemporary ? 'Ожидает оплаты' : available ? 'Доступно' : 'Занято'}
+                                                {isSocial ? 'Секция' : isTemporary ? 'Ожидает оплаты' : available ? 'Доступно' : 'Занято'}
                                             </span>
                                         </TimeSlot>
                                         {isSelected && (
@@ -822,14 +967,6 @@ const Courts = () => {
         <div className="container mx-auto px-4 py-8">
             <StaticHeader />
             <CourtContainer>
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.2 }}
-                >
-                    <CourtImage />
-                </motion.div>
-
                 <DynamicContent
                     currentWeekStart={currentWeekStart}
                     selectedDate={selectedDate}
@@ -850,6 +987,17 @@ const Courts = () => {
                     onTemporaryReservationsUpdate={handleTemporaryReservationsUpdate}
                 />
             </CourtContainer>
+            <Footer>
+                <TelegramLink href="https://t.me/courtsnd" target="_blank" rel="noopener noreferrer">
+                    <img src={TelegramDarkLightIcon} alt="Telegram" />
+                    Подписывайтесь на наш Telegram-канал
+                </TelegramLink>
+                <AdminContact>
+                    Администратор: <br />
+                    Телефон: +7 812 750-79-05 <br />
+                    ТГ: <a href="https://t.me/tennisnd" target="_blank" rel="noopener noreferrer">@tennisnd</a>
+                </AdminContact>
+            </Footer>
         </div>
     );
 };

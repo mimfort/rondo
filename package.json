@@ -2,6 +2,7 @@
   "dependencies": {
     "@types/react-datepicker": "^6.2.0",
     "date-fns": "^4.1.0",
-    "react-datepicker": "^8.3.0"
+    "react-datepicker": "^8.3.0",
+    "swiper": "^11.2.7"
   }
 }

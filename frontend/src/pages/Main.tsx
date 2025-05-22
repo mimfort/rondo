@@ -341,7 +341,7 @@ const Main = () => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center">
                         <a
-                            href="https://t.me/neloh074"
+                            href="https://t.me/tennisnd"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-block group"

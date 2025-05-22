@@ -4,14 +4,14 @@ import smtplib
 from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-
+from datetime import date
 from app.court_reservation.dao import CourtReservationDAO
 from app.tasks.celery_app import celery
 from app.tasks.service import SpecialConvert
 from app.users.auth import generate_confirmation_token
 from celery import shared_task
 from asgiref.sync import async_to_sync
-
+import requests
 logger = logging.getLogger(__name__)
 
 link_api = "https://api.skkrondo.ru"
@@ -265,4 +265,25 @@ async def inner(reservation_id: int):
         if not reservation.is_confirmed:
             await CourtReservationDAO.delete(reservation_id)
             return True
+
+
+@celery.task(name="send_notification_telegram")
+def send_notification_telegram(data: date, time:str, first_name:str, last_name:str):
+    try:
+        url = f"https://api.telegram.org/bot{celery.conf.telegram_token}/sendMessage"
+        chat_id = celery.conf.telegram_chat_id
+        message = f"Пользователь {first_name} {last_name} забронировал на {data} в {time}:00"
+        payload = {
+                "chat_id": int(chat_id),
+                "text": message,
+                
+            }
+        response = requests.post(url, json=payload)
+        if response.status_code == 200:
+            return {"status": "success"}
+        else:
+            return {"status": "error", "message": response.text}
+    except Exception as e:
+        logger.error(f"Ошибка {str(e)}")
+        return {"status": "error", "message": str(e)}
 

@@ -4,11 +4,11 @@ from app.court_reservation.dao import CourtReservationDAO
 from app.court_reservation.model import CourtReservation
 from app.courts.dao import CourtDAO
 from app.users.model import User
-from app.court_reservation.schemas import AdminListCourtReservation, ListCourtReservation, CourtReservationCreate, CourtReservationUpdate, CourtReservation_response, CourtReservationCreateByAdmin, CourtResrvationPayment    
+from app.court_reservation.schemas import AdminListCourtReservation, ListCourtReservation, CourtReservationCreate, CourtReservationUpdate, CourtReservation_response, CourtReservationCreateByAdmin, CourtResrvationPayment, CourtReservationUpdateDate 
 from app.users.dependencies import get_current_user
 from datetime import date, datetime
 from app.users.dao import UsersDao
-from app.tasks.tasks import cancel_if_not_confirmed, send_about_registration_on_court
+from app.tasks.tasks import cancel_if_not_confirmed, send_about_registration_on_court, send_notification_telegram
 from datetime import date
 from app.payments.service import create_payment, verify_rental_signature
 import json
@@ -28,7 +28,7 @@ async def get_court_reservations(
 @router.get("/all_admin/{date}", response_model=AdminListCourtReservation | None)
 async def get_court_reservations(
     date: date):
-    courts_reservations = await CourtReservationDAO.find_all(date=date)
+    courts_reservations = await CourtReservationDAO.find_all(date=date,order_by=CourtReservation.time)
     return {"items": courts_reservations, "total": len(courts_reservations)}
 
 
@@ -71,12 +71,13 @@ async def confirm_reservation(
         raise HTTPException(status_code=409, detail="Оплата уже подтверждена")
     result = await CourtReservationDAO.update(id=reservation_id, field="is_confirmed", data=True)
     send_about_registration_on_court.delay(to=reservation.user.email, name=reservation.user.first_name, last_name = reservation.user.last_name,  court=reservation.court.name, time_start=reservation.time)
+    send_notification_telegram.delay(data=reservation.date, time=reservation.time, first_name=reservation.user.first_name, last_name=reservation.user.last_name)
     return result
 @router.get("/my_reservations", response_model=ListCourtReservation)
 async def get_my_reservations(
     current_user: User = Depends(get_current_user)
 ):
-    reservations = await CourtReservationDAO.find_all(user_id=current_user.id, is_confirmed=True)
+    reservations = await CourtReservationDAO.find_all(user_id=current_user.id, is_confirmed=True, order_by=CourtReservation.date)
     return {"items": reservations, "total": len(reservations)}
 
 @router.delete("/cancel/{reservation_id}", response_model=CourtReservation_response)
@@ -154,9 +155,70 @@ async def yookassa_webhook(request: Request):
         rental_id = payment_data["metadata"]["rental_id"]
         reservation = await CourtReservationDAO.update(id=int(rental_id), field="is_confirmed", data=True)
         send_about_registration_on_court.delay(to=reservation.user.email, name=reservation.user.first_name, last_name = reservation.user.last_name,  court=reservation.court.name, time_start=reservation.time)
+        send_notification_telegram.delay(data=reservation.date, time=reservation.time, first_name=reservation.user.first_name, last_name=reservation.user.last_name)
         return {"status": "success"}
     except Exception as e:
         print("Ошибка при получении id и metadata:", e)
         raise HTTPException(status_code=400, detail="Invalid webhook data")
+    
+@router.put("/update/{reservation_id}", response_model=CourtReservation_response)
+async def update_reservation(
+    reservation_id: int,
+    data: CourtReservationUpdateDate,
+    current_user: User = Depends(get_current_user)
+):
+    reservation = await CourtReservationDAO.find_one_or_none(id=reservation_id)
+    if not reservation:
+        raise HTTPException(status_code=404, detail="Бронирование не найдено")
+    court = await CourtDAO.find_one_or_none(id=data.court_id)
+    if not court:
+        raise HTTPException(status_code=404, detail="Корт не найден")
+    if current_user.admin_status != "admin":
+        raise HTTPException(status_code=403, detail="Недостаточно прав")
+    if data.date < date.today():
+        raise HTTPException(status_code=400, detail="Дата должна быть больше текущей")
+    if data.time < 9 or data.time > 20:
+        raise HTTPException(status_code=400, detail="Время должно быть в диапазоне от 9 до 20")
+    is_exists = await CourtReservationDAO.find_one_or_none(date=data.date, time=data.time, court_id=data.court_id)
+    if is_exists:
+        raise HTTPException(status_code=400, detail="Время уже занято")
+    await CourtReservationDAO.update(id=reservation_id, field="date", data=data.date)
+    await CourtReservationDAO.update(id=reservation_id, field="court_id", data=data.court_id)
+    result = await CourtReservationDAO.update(id=reservation_id, field="time", data=data.time)
+    return result
+
+@router.put("/update_social/{reservation_id}", response_model=CourtReservation_response)
+async def update_reservation(
+    reservation_id: int,
+    current_user: User = Depends(get_current_user)
+):
+    
+    reservation = await CourtReservationDAO.find_one_or_none(id=reservation_id)
+    if not reservation:
+        raise HTTPException(status_code=404, detail="Бронирование не найдено")
+    if current_user.admin_status != "admin":
+        raise HTTPException(status_code=403, detail="Недостаточно прав")
+    if reservation.is_social == True:
+        raise HTTPException(status_code=409, detail="Бронирование уже является социальным")
+    result = await CourtReservationDAO.update(id=reservation_id, field="is_social", data=True)
+    return result
+
+@router.put("/unupdate_social/{reservation_id}", response_model=CourtReservation_response)
+async def update_reservation(
+    reservation_id: int,
+    current_user: User = Depends(get_current_user)
+):
+    
+    reservation = await CourtReservationDAO.find_one_or_none(id=reservation_id)
+    if not reservation:
+        raise HTTPException(status_code=404, detail="Бронирование не найдено")
+    if current_user.admin_status != "admin":
+        raise HTTPException(status_code=403, detail="Недостаточно прав")
+    if reservation.is_social == False:
+        raise HTTPException(status_code=409, detail="Бронирование уже является не социальным")
+    result = await CourtReservationDAO.update(id=reservation_id, field="is_social", data=False)
+    return result
+       
+
         
 

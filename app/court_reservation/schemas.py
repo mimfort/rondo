@@ -18,6 +18,11 @@ class CourtReservationCreateByAdmin(CourtReservationBase):
 class CourtReservationUpdate(BaseModel):
     is_confirmed: bool
 
+class CourtReservationUpdateDate(BaseModel):
+    date: date
+    time: int
+    court_id: int
+
 class UserInfo(BaseModel):
     email: str
     last_name: str|None
@@ -28,6 +33,7 @@ class CourtReservation_response(CourtReservationBase):
     user_id: int
     created_at: datetime
     is_confirmed: bool
+    is_social: bool|None
     @field_validator("created_at", mode="before")
     def adjust_created_at(cls, value):
         """Добавляет смещение +3 часа к created_at."""
@@ -46,6 +52,7 @@ class AdminCourtReservationresponse(CourtReservationBase):
     created_at: datetime
     is_confirmed: bool
     user: UserInfo
+    is_social: bool|None
     @field_validator("created_at", mode="before")
     def adjust_created_at(cls, value):
         """Добавляет смещение +3 часа к created_at."""
